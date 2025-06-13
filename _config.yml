@@ -98,7 +98,11 @@ theme_mode: dark # [light | dark]
 cdn:
 
 # the avatar on sidebar, support local or CORS resources
+<<<<<<< Updated upstream
 #avatar: /assets/avatar.webp
+=======
+avatar: /assets/avatar.webp
+>>>>>>> Stashed changes
 
 # The URL of the site-wide social preview image used in SEO `og:image` meta tag.
 # It can be overridden by a customized `page.image` in front matter.

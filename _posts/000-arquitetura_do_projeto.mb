@@ -1,0 +1,17 @@
+---
+title: TryHackMe - Pickle Rick
+description: Rick e Morty CTF. Ajude a transformar Rick de volta em um humano!
+author: 4n4l1st1
+categories: [Challenges, Linux]
+tags: [CTF-Fácil, nmap, gobuster, reverse-shell, privilege-escalation]
+media_subpath: /assets/images/picklerick
+image:
+  path: capa.webp
+  alt: Rick e Morty CTF. Ajude a transformar Rick de volta em um humano!
+---
+
+Este desafio com tema de **Rick and Morty** nos leva a explorar um servidor web em busca de **três ingredientes secretos** para ajudar Rick a preparar uma poção que o transforme novamente em humano, após ter virado um picles.
+
+## Reconhecimento Inicial
+### Varredura de Portas e Detecção de Serviços com Nmap
+Comecei identificando os serviços ativos na máquina alvo usando o `nmap`com uma varredura completa de portas e detecção de serviços.

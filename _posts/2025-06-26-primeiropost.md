@@ -1,20 +1,17 @@
 ---
-title: "TryHackMe: Net Sec Challenge"
-description: Pratique as habilidades que você aprendeu no módulo Segurança de Rede.
-author: 4n4l1st4
-categories: [Challenges, Linux]
-tags: [CTF-Médio, nmap, telnet, hydra]
+title: aqui coloque o titulo
+date: 2025-06-26 16:30:00 -0300
+categories: [Tecnologia, Fundamentos]
+tags: [computador, hardware, software, tecnologia, como-funciona]
+description: uma descrição do titulo para criar.
 image:
   path: /assets/img/avatarhacker.png
-  alt: Ilustração de um computador moderno com elementos de código.
-comments: true
+  alt: Ilustração de um computador moderno com elementos de código e processamento
+
 ---
 
-## Descrição do Desafio
-Este desafio foi desenvolvido para avaliar o domínio das habilidades apresentadas no **módulo de Segurança de Rede**. Todas as etapas podem ser resolvidas utilizando apenas três ferramentas fundamentais: `nmap`, `telnet` e `hydra`.
+ola bom dia<br>
 
-## Perguntas do Desafio
-### Nmap
-Realizei uma varredura completa na máquina-alvo. Cada parâmetro foi escolhido com um propósito específico, facilitando a coleta das informações necessárias para responder às perguntas do desafio.
+coloque o conteudo aqui
 
-
+---

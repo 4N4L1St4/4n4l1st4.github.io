@@ -5,7 +5,7 @@ categories: [Tecnologia, Fundamentos]
 tags: [computador, hardware, software, tecnologia, como-funciona]
 description: Explore o universo dos computadores, desde seus componentes básicos até como eles revolucionaram nosso dia a dia.
 image:
-  path: /assets/img/posts/o-que-e-um-computador/main.jpg
+  path: /assets/img/avatarhacker.png
   alt: Ilustração de um computador moderno com elementos de código e processamento
 ---
 
@@ -30,7 +30,7 @@ O **hardware** é a parte física, tudo o que você pode tocar. Pense nele como 
 * **Placa de Vídeo (GPU - Graphics Processing Unit)**: Essencial para processar e exibir imagens. Crucial para jogos e softwares de design gráfico.
 * **Fonte de Alimentação**: Fornece energia elétrica para todos os componentes do computador.
 
-![Componentes internos de um computador desktop](/assets/img/posts/o-que-e-um-computador/hardware-components.jpg){: width="800" height="450" .shadow }
+![Componentes internos de um computador desktop](/assets/img/avatarhacker.png){: width="800" height="450" .shadow }
 _Uma visão interna dos principais componentes de hardware de um desktop. Eles trabalham em conjunto para o funcionamento do computador._
 
 ### Software

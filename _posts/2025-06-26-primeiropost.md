@@ -1,11 +1,11 @@
 ---
-title: Implantação de uma rede segura_p1
+title: 000 - Implantação de uma rede segura_p1
 date: 2025-06-26 16:30:00 -0300
 categories: [Cyber, Fundamentos]
 tags: [computador, hardware, software, tecnologia, como-funciona]
 description: uma descrição do titulo para criar.
 image:
-  path: /assets/img/ImplantacaoDeRede.png
+  path: /assets/img/000/capa.webp
   alt: Ilustração de um computador moderno com elementos de código e processamento
 ---
 

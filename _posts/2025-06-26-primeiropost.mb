@@ -9,12 +9,11 @@ image:
   alt: Ilustração de um computador moderno com elementos de código e processamento
 ---
 
-
 Olá, entusiastas da tecnologia e curiosos!
 
 Você já parou para pensar no que realmente é um **computador**? Essa máquina que se tornou tão onipresente em nossas vidas, desde os smartphones em nossos bolsos até os poderosos servidores que mantêm a internet funcionando. De forma simples, um computador é um dispositivo eletrônico capaz de processar dados, executar cálculos complexos e armazenar informações. Mas ele é muito mais do que isso!
 
-
+---
 
 ## Os Dois Pilares: Hardware e Software
 
@@ -31,7 +30,7 @@ O **hardware** é a parte física, tudo o que você pode tocar. Pense nele como 
 * **Placa de Vídeo (GPU - Graphics Processing Unit)**: Essencial para processar e exibir imagens. Crucial para jogos e softwares de design gráfico.
 * **Fonte de Alimentação**: Fornece energia elétrica para todos os componentes do computador.
 
-![Componentes internos de um computador desktop](/assets/img/avatarhacker.png){: width="800" height="450" .shadow }
+![Componentes internos de um computador desktop](hardware-interna.webp){: width="800" height="450" .shadow }
 _Uma visão interna dos principais componentes de hardware de um desktop. Eles trabalham em conjunto para o funcionamento do computador._
 
 ### Software
@@ -41,7 +40,7 @@ Se o hardware é o corpo, o **software** é a alma, a mente do computador. Ele �
 * **Sistema Operacional (SO)**: É o software mais importante. Ele gerencia os recursos do hardware e permite que outros programas funcionem. Exemplos populares incluem Windows, macOS e Linux.
 * **Aplicativos/Programas**: São os softwares que você usa para tarefas específicas, como navegadores de internet (Chrome, Firefox), editores de texto (Word), jogos, programas de edição de vídeo, etc.
 
-
+---
 
 ## Como um Computador Funciona (De Forma Simplificada)
 
@@ -53,7 +52,7 @@ Imagine que você clica em um ícone para abrir seu navegador de internet:
 
 Esse ciclo de **entrada**, **processamento** e **saída** é a base de todas as operações de um computador.
 
-
+---
 
 ## A Evolução e o Impacto
 
@@ -64,11 +63,10 @@ Desde os primeiros computadores gigantes que ocupavam salas inteiras até os min
 * **Trabalho**: Automação de tarefas, criação de conteúdo digital, análise de dados.
 * **Entretenimento**: Jogos imersivos, streaming de filmes e música, realidade virtual.
 
-
+---
 
 ## Conclusão
 
 Um computador é uma maravilha da engenharia moderna, uma fusão inteligente de hardware e software que nos permite interagir com o mundo digital. Entender seus fundamentos não é apenas para especialistas em tecnologia, mas para qualquer pessoa que queira compreender melhor as ferramentas que moldam nosso presente e futuro.
 
 Esperamos que este post tenha desmistificado um pouco o universo dos computadores para você!
-

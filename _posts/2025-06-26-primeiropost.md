@@ -5,9 +5,8 @@ categories: [Cyber, Fundamentos]
 tags: [computador, hardware, software, tecnologia, como-funciona]
 description: uma descrição do titulo para criar.
 image:
-  path: /assets\img\ImplantacaoDeRede.png
+  path: /assets/img/ImplantacaoDeRede.png
   alt: Ilustração de um computador moderno com elementos de código e processamento
-
 ---
 
 ## :dart: Artigo "Protocolos seguros | Implantação de uma rede segura | Parte I"

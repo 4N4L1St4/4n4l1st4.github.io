@@ -5,8 +5,8 @@ categories: [Tecnologia, Fundamentos]
 tags: [computador, hardware, software, tecnologia, como-funciona]
 description: uma descrição do titulo para criar.
 image:
-  path: /assets/img/avatarhacker.png
-  alt: Ilustração de um computador moderno com elementos de código e processamento
+  path: /assets/img/avatarhacker.png
+  alt: Ilustração de um computador moderno com elementos de código e processamento
 
 ---
 
@@ -14,4 +14,3 @@ ola bom dia<br>
 
 coloque o conteudo aqui
 ![carregue](/assets/img/avatarhacker.png)
----

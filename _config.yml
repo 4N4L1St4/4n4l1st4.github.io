@@ -16,7 +16,7 @@ timezone:
 
 title: 4n4l1st4 # the main title
 
-tagline: O Poder do Cyber # it will display as the subtitle
+tagline: # it will display as the subtitle
 
 description: >- # used by seo meta and the atom feed
   A minimal, responsive and feature-rich Jekyll theme for technical writing.
@@ -26,10 +26,10 @@ description: >- # used by seo meta and the atom feed
 url: "https://4n4l1st4.github.io"
 
 github:
-  username: github_username # change to your GitHub username
+  username: 4n4l1st4 # change to your GitHub username
 
 twitter:
-  username: twitter_username # change to your Twitter username
+  username: 4n4l1st4 # change to your Twitter username
 
 social:
   # Change to your full name.

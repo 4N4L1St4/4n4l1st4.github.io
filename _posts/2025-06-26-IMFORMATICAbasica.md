@@ -5,7 +5,7 @@ categories: [Basico]
 tags: [Teorica]
 description: "Profissional em início de carreira, responsável por monitoramento básico, identificação preliminar de ameaças e suporte às operações de segurança. Atua seguindo procedimentos estabelecidos e orientações de profissionais mais experientes, desenvolvendo habilidades técnicas e conhecimento do ambiente de segurança."
 image:
-  path: /assets/img/PROJsiem.png
+  path: /assets/img/PROJredes.png
   alt: Ilustração de um computador moderno com elementos de código e processamento
 ---
 # 🔵 Fundamentos de Redes
@@ -42,7 +42,7 @@ Da **Camada 1 (Física)** até a **Camada 7 (Aplicação)**, os dados são proce
 
 ## 🧠 Como Pensar em Cada Camada
 
-!!!
+```
 🟣 **Camada 7 – Aplicação**  
 A interface entre o usuário e a rede. Ex: navegadores, clientes de e-mail.
 
@@ -63,7 +63,7 @@ Identifica dispositivos com endereços MAC e garante entrega local.
 
 ⚫ **Camada 1 – Física**  
 Transmite bits através de cabos, rádio ou fibra.
-!!!
+```
 
 ---
 
@@ -105,10 +105,10 @@ Um endereço IPv4 possui **32 bits**, divididos em 4 blocos de 8 bits (octetos).
 
 Exemplo:
 
-!!!
+```
 IP: 192.168.0.10  
 Binário: 11000000.10101000.00000000.00001010
-!!!
+```
 
 A máscara de sub-rede (ex: `255.255.255.0`) determina **quantos bits pertencem à rede** e **quantos ao host**.
 
@@ -155,12 +155,12 @@ Exemplos:
 
 O **CIDR (Classless Inter-Domain Routing)** define a sub-rede com a notação `/n`, onde `n` é o número de bits da rede.
 
-!!!
+```
 Exemplo:  
 192.168.1.0/24  
 ➡️ 24 bits para a rede  
 ➡️ 8 bits para hosts (2⁸ - 2 = 254 IPs utilizáveis)
-!!!
+```
 
 ---
 
@@ -195,10 +195,10 @@ Quando você acessa um site, o DNS segue uma **cadeia de resolução** até enco
 3. Passa por **servidores raiz**, **TLDs** (`.com`, `.org`, etc.)  
 4. Chega ao **servidor autoritativo**, que responde com o IP
 
-!!!
+```
 Exemplo:  
 Você digita `chat.openai.com` → o DNS retorna `104.18.12.123`  
-!!!
+```
 
 ---
 
@@ -272,7 +272,7 @@ Para o Blue Team, compreender o funcionamento do HTTP/HTTPS é essencial para **
 
 Uma comunicação HTTP básica segue este padrão:
 
-!!!
+```
 Cliente (navegador) envia:
 
 GET /index.html HTTP/1.1  
@@ -285,7 +285,7 @@ Servidor responde:
 HTTP/1.1 200 OK  
 Content-Type: text/html  
 Set-Cookie: id=1234  
-!!!
+```
 
 ---
 
@@ -336,12 +336,12 @@ O **HTTPS** protege os dados com **criptografia TLS**, garantindo:
 - Integridade: os dados não são alterados no caminho  
 - Autenticidade: garante que o servidor é legítimo (via certificado)
 
-!!!
+```
 Exemplo de URL segura:  
 https://meusite.com  
 ➡️ Cadeado no navegador  
 ➡️ Tráfego criptografado com TLS  
-!!!
+```
 
 ---
 
@@ -387,14 +387,14 @@ O **TCP** é um protocolo **confiável e orientado à conexão**. Ele garante qu
 - Utiliza **controle de fluxo** e **retransmissão** em caso de perda  
 - Realiza o **three-way handshake** antes de transmitir dados
 
-!!!
+```
 Etapas do Three-Way Handshake:
 
 1️⃣ Cliente envia `SYN`  
 2️⃣ Servidor responde com `SYN-ACK`  
 3️⃣ Cliente responde com `ACK`  
 ➡️ Conexão estabelecida  
-!!!
+```
 
 ### 📦 Aplicações que usam TCP:
 
@@ -416,11 +416,11 @@ Ele **não garante entrega**, mas é **mais rápido e leve**.
 - Sem retransmissões ou ordenação  
 - Ideal para aplicações que toleram perdas e exigem baixa latência
 
-!!!
+```
 Exemplo:  
 Enviar 100 pacotes UDP → o receptor pode receber 95, sem erro.  
 ➡️ Não há aviso sobre perdas.
-!!!
+```
 
 ### 📦 Aplicações que usam UDP:
 
@@ -555,12 +555,12 @@ Após isso, a sessão está aberta e os dados podem começar a ser trocados.
 
 ### 📥 Exemplo Visual
 
-!!!
+```
 Cliente               Servidor
    | ---- SYN ------> |
    | <--- SYN-ACK --- |
    | ---- ACK ------> |
-!!!
+```
 
 ---
 

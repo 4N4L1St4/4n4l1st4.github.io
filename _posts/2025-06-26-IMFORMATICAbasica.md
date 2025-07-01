@@ -1,5 +1,5 @@
 ---
-title: "Projeto: Informática Básica"
+title: "Projeto: Network Operations Center (NOC)"
 date: 2025-06-26 16:30:00 -0300
 categories: [Basico]
 tags: [Teorica]
@@ -8,6 +8,30 @@ image:
   path: /assets/img/PROJredes.png
   alt: Ilustração de um computador moderno com elementos de código e processamento
 ---
+
+# O que é NOC?
+
+**NOC** (Network Operations Center), ou Centro de Operações de Rede, é uma unidade especializada responsável pelo monitoramento, gerenciamento e manutenção da infraestrutura de rede e sistemas de uma organização.
+
+## Objetivo do NOC
+
+O principal objetivo do NOC é garantir que a rede, servidores, aplicações e demais componentes de TI estejam operando de forma estável, segura e eficiente, minimizando o tempo de indisponibilidade e prevenindo falhas que possam afetar o negócio.
+
+## Funções principais do NOC
+
+- **Monitoramento contínuo:** acompanha o desempenho e a disponibilidade dos equipamentos e serviços de rede 24/7.  
+- **Detecção e resposta a incidentes:** identifica rapidamente problemas, realiza diagnósticos iniciais e aciona equipes de suporte para resolução.  
+- **Gerenciamento de mudanças:** controla atualizações, patches e configurações para manter a rede segura e atualizada.  
+- **Documentação e relatórios:** mantém registros detalhados dos eventos, incidentes e ações tomadas, auxiliando em análises e auditorias.  
+- **Coordenação com outras equipes:** atua em conjunto com times de segurança (Blue Team), suporte técnico e engenharia para garantir a integridade do ambiente.
+
+## Importância do NOC
+
+Um NOC eficiente é vital para assegurar a continuidade dos serviços de TI, reduzindo riscos operacionais e garantindo que a organização possa responder rapidamente a ameaças e falhas técnicas.
+
+---
+
+
 # 🔵 Fundamentos de Redes
 
 Para atuar de forma eficaz na defesa cibernética, um profissional Blue Team precisa compreender os **fundamentos das redes**. Esses conhecimentos são essenciais para analisar tráfego, detectar comportamentos anômalos e identificar ameaças que se propagam pela rede.
@@ -594,3 +618,94 @@ Compreender o handshake TCP permite ao analista:
 - Identificar **scans furtivos ou comunicação anômala**
 
 A observação do handshake é **fundamental em qualquer análise de tráfego de rede**.
+
+# Ferramentas de NOC (Network Operations Center)
+
+No ambiente de um NOC, o uso de ferramentas eficientes é fundamental para o monitoramento, gerenciamento e manutenção da infraestrutura de rede e sistemas. A seguir, uma análise das principais ferramentas usadas em NOCs: **Zabbix, Grafana, PHPIPAM e GLPI**.
+
+---
+
+## 🛠️ Zabbix
+
+O **Zabbix** é uma plataforma open-source para **monitoramento de redes, servidores, aplicações e serviços**.
+
+### Características principais:
+
+- Monitoramento em tempo real de disponibilidade e desempenho  
+- Coleta de métricas via agentes ou protocolos SNMP, IPMI, JMX, etc.  
+- Sistema flexível de alertas e notificações configuráveis  
+- Dashboards e relatórios personalizáveis  
+- Suporte para monitoramento distribuído e alta disponibilidade
+
+### Uso no NOC:
+
+Zabbix é usado para detectar falhas e degradação na rede ou nos servidores, permitindo respostas rápidas e prevenção de downtime.
+
+---
+
+## 📊 Grafana
+
+O **Grafana** é uma plataforma de análise e visualização de métricas em tempo real, que se integra a diversas fontes de dados.
+
+### Características principais:
+
+- Dashboards interativos e altamente customizáveis  
+- Suporte a várias fontes de dados: Prometheus, InfluxDB, Elasticsearch, Zabbix, entre outros  
+- Alertas configuráveis baseados em regras definidas  
+- Plugins para gráficos, mapas de calor, tabelas e muito mais
+
+### Uso no NOC:
+
+Grafana é amplamente utilizado para criar painéis visuais que facilitam a compreensão do estado da infraestrutura, complementando ferramentas de monitoramento como o Zabbix.
+
+---
+
+## 🌐 PHPIPAM
+
+O **PHPIPAM** é uma aplicação web open-source para **gerenciamento de endereçamento IP (IPAM)**.
+
+### Características principais:
+
+- Inventário e organização de blocos IP, sub-redes e endereços IP individuais  
+- Suporte a VLANs, VRFs e hierarquias complexas de redes  
+- Documentação de dispositivos e comentários  
+- Controle de acesso baseado em permissões  
+- API para integração com outras ferramentas
+
+### Uso no NOC:
+
+PHPIPAM ajuda o NOC a manter um controle preciso sobre os recursos de endereçamento IP, evitando conflitos e facilitando o planejamento e troubleshooting.
+
+---
+
+## 🖥️ GLPI
+
+O **GLPI (Gestionnaire Libre de Parc Informatique)** é um sistema de gerenciamento de recursos de TI e **central de serviços (ITSM)**.
+
+### Características principais:
+
+- Inventário automático e manual de hardware e software  
+- Gestão de chamados (tickets) e fluxo de trabalho  
+- Base de conhecimento para suporte  
+- Controle de contratos, fornecedores e custos  
+- Relatórios e dashboards para análise de desempenho
+
+### Uso no NOC:
+
+GLPI organiza e centraliza o suporte técnico, facilitando a gestão dos incidentes, solicitações e ativos, otimizando o trabalho do time de operações.
+
+---
+
+## Resumo
+
+| Ferramenta | Função Principal                      | Uso no NOC                                   |
+|------------|-------------------------------------|----------------------------------------------|
+| Zabbix     | Monitoramento de rede e sistemas    | Detectar falhas e performance em tempo real  |
+| Grafana    | Visualização de métricas e dashboards| Painéis interativos para análise visual       |
+| PHPIPAM    | Gerenciamento de endereçamento IP   | Controle e planejamento de IPs e sub-redes   |
+| GLPI       | Gestão de ativos e suporte técnico   | Administração de chamados, inventário e suporte |
+
+---
+
+Essas ferramentas, usadas em conjunto, permitem que o NOC mantenha a infraestrutura da rede saudável, otimizada e com alta disponibilidade, além de garantir agilidade no atendimento a incidentes.
+

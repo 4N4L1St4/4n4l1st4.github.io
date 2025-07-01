@@ -15,7 +15,7 @@ Este espaço é dedicado a concentrar planos de estudos, além de ser um ponto d
 
 ---
 
-#### Grupo de Estudo CyberARK
+#### Grupo de Estudo CyberSEC
 
 > Estamos construindo uma comunidade para o aprendizado e a troca de conhecimentos em cibersegurança.
 > * **Link para o Grupo do WhatsApp:** [https://chat.whatsapp.com/HX1XUYmRHWjIDxndYSFRK5](https://chat.whatsapp.com/HX1XUYmRHWjIDxndYSFRK5)

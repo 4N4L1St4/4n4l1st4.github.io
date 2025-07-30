@@ -13,7 +13,7 @@ image:
 
 Esse é o nosso diagrama para ter uma visão de como é o ambiente que estamos tendo
 
-![Diagrama de Fluxo](/assets/img/DiagramaEstudo.svg)
+![Diagrama de Fluxo](/assets/img/DiagramaPRINCIPAL.svg)
 
 
 ## DIA x: 🔥 Revisão de Controles de Firewall: IPS

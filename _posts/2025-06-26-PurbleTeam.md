@@ -1758,10 +1758,6 @@ Identificar e listar credenciais que estejam armazenadas em servidores, especial
 - Promover a utilização de cofres de senha (Password Vaults) para armazenamento seguro.  
 - Eliminar arquivos desnecessários contendo credenciais.  
 
-### Referência  
-Para mais detalhes e checklist completo, consulte o documento:  
-[Download Listagem de Credencias em Servidores com Pastas Compartilhadas](path/para/o/arquivo/Listagem_de_Credencias_em_Servidores_com_pastas_compartilhadas.pdf)
-
 ---
 
 ## DIA x: Auditoria de Routers Mikrotik sem senha configurada

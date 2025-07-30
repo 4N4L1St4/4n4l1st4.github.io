@@ -2083,7 +2083,7 @@ Realizar uma limpeza e restrição dos serviços e portas em servidores de produ
 
 ### Ferramentas para auxílio
 
-- `nmap` (!!!nmap -sV -p- <IP_DO_SERVIDOR>!!!) para listar portas abertas e versões dos serviços.
+- `nmap` (```nmap -sV -p- <IP_DO_SERVIDOR>```) para listar portas abertas e versões dos serviços.
 - Comandos locais como `netstat`, `ss`, `lsof` para identificar processos e portas em uso.
 - Firewalls e listas de controle de acesso (iptables, firewalld, ACLs de roteadores).
 
@@ -2123,7 +2123,7 @@ Detectar e mitigar tentativas de spoofing na rede, protegendo os ativos contra a
 
 ### Exemplo de script básico para detecção de ARP spoofing (Linux)
 
-!!!bash
+```bash
 #!/bin/bash
 # Script simples para detectar ARP spoofing usando arpspoof tool
 
@@ -2133,7 +2133,7 @@ tail -f /var/log/arpwatch.log | while read line; do
   echo "$line" | grep "changed ethernet address" && \
   echo "[ALERTA] Possível ARP spoofing detectado: $line" | mail -s "Alerta ARP Spoofing" admin@empresa.com
 done
-!!!
+```
 
 ### Ferramentas úteis
 
@@ -2173,9 +2173,9 @@ Identificar e remover perfis e sessões de usuários em desuso para reduzir risc
 
 ### Exemplo de comando para listar usuários inativos no Active Directory (PowerShell)
 
-!!!powershell
+```powershell
 Search-ADAccount -AccountInactive -TimeSpan 90.00:00:00 -UsersOnly | Select-Object Name, LastLogonDate
-!!!
+```
 
 ### Ferramentas úteis
 

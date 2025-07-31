@@ -1,5 +1,5 @@
 ---
-title: "Projeto: Gerenciamento de Informações e Eventos de Segurança (SIEM)"
+title: "CheckListCyber"
 date: 2025-06-26 16:30:00 -0300
 categories: [Blue Team, Nivel 1]
 tags: [Teorica]

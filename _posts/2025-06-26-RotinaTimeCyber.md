@@ -43,7 +43,7 @@ O IPS (Intrusion Prevention System) é um mecanismo fundamental de defesa que in
 Redução da superfície de ataque e **bloqueio automatizado de ameaças em tempo real**, antes mesmo de atingirem sistemas internos.
 
 ---
-
+<!--
 ## DIA x: 🔥 Revisão de Controles de Firewall: IDS
 
 O IDS (Intrusion Detection System) é um sistema de detecção passiva que monitora o tráfego de rede ou eventos de sistema, **identificando comportamentos suspeitos, ataques ou violações de política de segurança**, sem realizar bloqueios automáticos.
@@ -2194,7 +2194,9 @@ Search-ADAccount -AccountInactive -TimeSpan 90.00:00:00 -UsersOnly | Select-Obje
 
 **Importante:**  
 Manter uma rotina periódica de revisão de contas e sessões é essencial para manter a segurança e reduzir riscos internos.
+-->
 ---
+
 
 	
 

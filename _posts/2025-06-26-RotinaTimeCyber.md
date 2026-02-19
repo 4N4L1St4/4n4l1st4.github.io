@@ -1756,7 +1756,7 @@ Identificar e listar credenciais que estejam armazenadas em servidores, especial
 - Revisar permissões de pastas compartilhadas para garantir acesso restrito.  
 - Utilizar ferramentas para inventariar e analisar arquivos com credenciais sensíveis.  
 - Promover a utilização de cofres de senha (Password Vaults) para armazenamento seguro.  
-- Eliminar arquivos desnecessários contendo credenciais.  
+- Eliminar arquivos desnecessários contendo credenciais. 
 
 ---
 
@@ -2194,6 +2194,107 @@ Search-ADAccount -AccountInactive -TimeSpan 90.00:00:00 -UsersOnly | Select-Obje
 
 **Importante:**  
 Manter uma rotina periódica de revisão de contas e sessões é essencial para manter a segurança e reduzir riscos internos.
+
+## DIA x: Rever na rede SNMP com comnuicadae padrão
+
+### Risco  
+Consulta de dados internos
+
+### Como testar:
+snmpwalk -v2c -c public 127.0.0.1
+
+## Colocar casos de DLP aqui, da lista que esei na KGC
+
+## Rever usuario desligado dos ultimos 10 anos
+
+## Revisar PSI para ver se esta em conformidade com o dia a dia
+
+## Servidor de arquivo (Ver o tempo de retenção de arquivos scaneados e impressos)
+
+## rever se o agentSIEM/Sysmon/audit/rsyslog estão nas máquinas necessarioas, (servidores/Endpoint)
+
+## Ver como esão so testes de restore de BACKUP para  no momento da produção não falhar
+
+## Ver se todas as licenças estão conforme monitorado (cuidado com a comunicação de licença (pode causar falha de validação de deixar de ser valido o certificado))
+
+## Rever esteira de desenvolvimento na camada de Segurança
+
+## Criar Phising usando GRABIFY.LINK
+
+## Rever ou iniciar realatorios do SIEM
+
+## Listaar todas as aplicações e iniciar processo de GV com relatorio personalizado
+
+## listar e restruturar as soluções de segurança para uma rede segmentada, levando cem consideração em casos de honeypot esta na DMZ limitada acesso
+
+## Subir ambiente de virtulização para estudos como o (EVE, ) no objetivo de mantar o conhecimento e laboratorios contantes
+
+## Revisar ou Implantar sistema de monitoramento de ativos (Zabbix, PRTG)
+Sistema com notificaçã em tempo real para aelrtar porblema e solução automatico (email  ou telegram)
+
+## verificar niveis de acesso do susuarios nas ferramentas de segurança
+
+## Remover usuarios antigos nas ferramenas cybersegurança e ferramentas do NOC (Vmware, veean, zaabix, grafana, LDAP)
+
+## Relatorio de OSINT usando google dorks, maltego ...
+
+## Amadurecer ou desnvolver a gestçao de vulberabilidade da empresa (Tenable, Openvas(greenbone))
+
+## Verificar anti-DDOS pela operadora
+
+## Verificar usuarios locais nos bancos de dados
+
+## Se não tem uma versão de banco oficial e homologado, homologar um software de banco de dados (migrar o que tem em produção hoje)
+
+## Verificar S.O Windows e Linux homologar versão para que possa ter um controle de correção de patch
+
+## Verificar com o sistema de email se local (a quantidade de email tendo uma unica origem colocar um limite de 100 email, por exemplo, caso passe disso o ususario pode ter sido vazado e esta espalhando spam ou phising)
+
+## Monitoramento de tempo de licença das ferramentas de segurança
+
+## Subir ambiente de Opencve
+
+## sistema de suporte remoto como mashcentral, otimo para acesso remoto seguro
+
+## Politica de troca de senha das cameças de video 
+
+## Portas abertas nas cameras normalmente na porta 37777
+
+## Verificar CVE Intelbras, Dahua ...
+
+## Monitoramento de Uptime dos equipamentos o parque, monitoramento de SNMP
+
+## Subir honey pot interno (usar máquina normal)
+
+## Subir honeypot na DMZ (honeypot conheido)
+
+## Navbegador Seguro (Kasm)
+
+## Criar/Melhorar POP - Resposta a incidente - 
+
+## Criar/Melhorar POP - Resposta a incidente - 
+## Criar/Melhorar POP - Resposta a incidente - 
+## Criar/Melhorar POP - Resposta a incidente - 
+## Criar/Melhorar POP - Resposta a incidente - 
+## Criar/Melhorar POP - Resposta a incidente - 
+## Criar/Melhorar POP - Resposta a incidente - 
+## Criar/Melhorar POP - Resposta a incidente - 
+## Criar/Melhorar POP - Resposta a incidente - 
+## Criar/Melhorar POP - Resposta a incidente - 
+## Criar/Melhorar POP - Resposta a incidente - 
+
+## integrar 2fa nos sistemas de VPN, aplicação ...
+
+## Alertar software não autorizado isntalado no parque ...
+
+## Subir um SOAR
+
+## Rever regras de firewall de borda, se há bloqueio por porta ou serviço
+o caso é que quando muda a porta de acesso remoto para outra, não sendo 22, vai funcionar , por exemplo colocar a porta 443
+
+## Criar Dashboard da autenticação ao sistema de email externo (se email for on-primise) (par aidentificar se alguem esta fazendo brute force)
+
+
 -->
 ---
 

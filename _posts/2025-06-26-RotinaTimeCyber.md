@@ -11,13 +11,39 @@ image:
 
 # Coloque em prática o que você encontrará aqui — vamos construir juntos um ciberespaço mais seguro.
 
-Esta série foi criada para guiar analistas de segurança, profissionais de TI e empresas na implementação de controles reais de proteção, detecção e resposta a incidentes.
+A segurança não nasce pronta.  
+Ela evolui.
 
-Aqui você não verá apenas teoria — verá a **rotina aplicada de um Time Cyber**.
+Assim como todo profissional de TI começa no laboratório, testando, errando e aprendendo, as empresas também iniciam suas operações de forma simples — com poucos recursos, processos básicos e muitas vezes sem uma estrutura formal de proteção.
+
+Com o crescimento do negócio surgem novos sistemas, novos usuários, integrações, acessos remotos, dados sensíveis e responsabilidades legais.  
+E junto com essa expansão vêm os **riscos**, os **processos legados** e as **vulnerabilidades acumuladas ao longo do tempo**.
+
+É nesse momento que a segurança precisa acompanhar a maturidade da empresa.
+
+Esta série foi criada para mostrar exatamente essa jornada:
+
+➡ da infraestrutura improvisada para o ambiente controlado  
+➡ da ausência de visibilidade para o monitoramento contínuo  
+➡ da reação ao incidente para a defesa estratégica  
+
+Aqui você não verá apenas teoria — verá a **evolução real de um Time Cyber**, acompanhando o crescimento do negócio e a necessidade de:
+
+- novos processos  
+- novas tecnologias  
+- novas especializações em cibersegurança  
+
+Porque segurança não é um projeto com início e fim.
+
+É um processo contínuo de maturidade.
 
 ---
 
 ## DIA 01 — [CONCEITO] Por que sua empresa não pode morar no seu notebook pessoal?
+
+image:
+  path: /assets/img/RedTeamN1.png
+  alt: Ilustração de um computador moderno com elementos de código e processamento
 
 Centralizar sistemas críticos em um equipamento pessoal representa um dos maiores riscos para o negócio.
 

@@ -39,11 +39,12 @@ Porque segurança não é um projeto com início e fim.
 
 ---
 
+---
+
 ## DIA 01 — [CONCEITO] Por que sua empresa não pode morar no seu notebook pessoal?
 
-image:
-  path: /assets/img/RedTeamN1.png
-  alt: Ilustração de um computador moderno com elementos de código e processamento
+![Infraestrutura crítica rodando em um notebook pessoal representando risco de SPOF](/assets/img/dia01.png)
+*Infraestrutura crítica não deve depender de um único equipamento.*
 
 Centralizar sistemas críticos em um equipamento pessoal representa um dos maiores riscos para o negócio.
 
@@ -61,7 +62,7 @@ Ambientes corporativos devem estar hospedados em:
 
 - Servidores dedicados  
 ou  
-- Infraestrutura virtualizada com controle, monitoramento e política de backup
+- Infraestrutura virtualizada com controle, monitoramento e política de backup  
 
 ### 🎯 Objetivo do dia:
 

